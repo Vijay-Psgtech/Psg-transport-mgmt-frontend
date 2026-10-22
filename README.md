@@ -1,55 +1,21 @@
-# PSG Transport Management Portal - Frontend
+# PSG Transport Management — Client
 
-This is the frontend repository for the PSG Transport Management Portal. It is built using React and provides a user interface for managing transportation services.
+React, React Router, Context API, Axios, and Tailwind CSS v4 frontend for the PSG Transport Management API.
 
-### Features
+## Run locally
 
-- User authentication and authorization
-- Dashboard for managing transportation requests
-- Real-time updates on transportation status
-- Integration with backend APIs for data retrieval and submission
+1. Copy `env.example` to `.env` and set `VITE_API_URL` if your API is not at `http://localhost:3000/api`.
+2. Install dependencies with `npm install`.
+3. Start the development server with `npm run dev`.
+4. Open the Vite URL shown in the terminal.
 
-  ### Stack
+The backend must be running and an administrator account must already exist. See [the server setup](../server/README.md).
 
-- React
-- Context API for state management
-- Axios for API calls
-- React Router for navigation
-- Tailwind CSS for styling
+## Included screens and access
 
-      ### Getting Started
+- **Sign in:** work-email/password form; accounts are provisioned by an administrator.
+- **Fleet overview:** vehicle totals, status counts, search, and status filtering.
+- **Vehicle form:** create and edit buses and cars, with driver, fuel, status, and notes fields.
+- **Role-aware actions:** admins and managers can add, edit, and remove vehicles; operators have read-only access.
 
-  To get started with the frontend, follow these steps:
-
-1.  Clone the repository:
-    ```bash
-    git clone <repository-url>
-    ```
-2.  Navigate to the project directory:
-
-    ```bash
-     cd client
-
-    ```
-
-3.  Install dependencies:
-
-    ```bash
-    npm install
-    ```
-
-4.  Start the development server:
-
-    ```bash
-    npm run dev
-    ```
-
-5.  Open your browser and go to `http://localhost:5173` to view the application.
-
-        ### Environment Variables
-
-    Create a `.env` file in the root of the project and add the following environment variables:
-
-```
-VITE_API_URL=http://localhost:5000/api
-```
+The API session is held in an HTTP-only cookie. The Context API exposes the current user and role-derived vehicle permissions to components; authorization is also enforced on the server.

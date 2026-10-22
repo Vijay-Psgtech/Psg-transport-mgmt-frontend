@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+@theme {
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-asphalt: #1b2430;
+  --color-asphalt-soft: #2a3646;
+  --color-signal: #f2b705;
+  --color-signal-dark: #c99700;
+  --color-canvas: #f2f4f7;
+  --color-line: #d9dee5;
+}
+
+body {
+  @apply bg-canvas font-sans text-asphalt antialiased;
+}
+
+/* The painted centre line of a road: used once, on the sign-in panel */
+.road-line {
+  background-image: repeating-linear-gradient(to bottom, var(--color-signal) 0 28px, transparent 28px 56px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
