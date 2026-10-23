@@ -15,6 +15,10 @@ export default function ProtectedRoute({ roles, children }) {
     );
   }
   if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
+  // A temporary password must be replaced before anything else
+  if (user.mustChangePassword && location.pathname !== '/change-password') {
+    return <Navigate to="/change-password" replace />;
+  }
   if (roles && !roles.includes(user.role)) return <Navigate to="/unauthorized" replace />;
   return children ?? <Outlet />;
 }

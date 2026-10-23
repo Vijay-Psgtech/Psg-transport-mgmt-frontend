@@ -53,3 +53,17 @@ export const labelOf = (list, value) => list.find((i) => i.value === value)?.lab
 
 // Same pattern as the backend, applied after stripping spaces and hyphens: TN38AB1234
 export const REG_NO_REGEX = /^[A-Z]{2}\d{1,2}[A-Z]{0,3}\d{1,4}$/;
+
+// ---- Phase 2: users and drivers ----
+export const ROLE_OPTIONS = Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }));
+
+export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+export const LICENSE_CLASSES = [
+  { value: 'LMV', label: 'Light motor vehicle (LMV)' },
+  { value: 'HMV', label: 'Heavy motor vehicle (HMV)' },
+  { value: 'HPMV', label: 'Heavy passenger motor vehicle (HPMV)' },
+];
+
+export const PHONE_REGEX = /^\+?[\d\s-]{7,15}$/;
+export const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
