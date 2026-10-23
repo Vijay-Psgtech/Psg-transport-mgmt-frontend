@@ -61,7 +61,7 @@ export function VehicleProvider({ children }) {
 
   const fetchDrivers = useCallback(async () => {
     try {
-      const { data } = await api.get('/users', { params: { role: 'driver' } });
+      const { data } = await api.get('/users/lookup', { params: { role: 'driver' } });
       dispatch({ type: 'SET_DRIVERS', payload: data.data });
     } catch {
       dispatch({ type: 'SET_DRIVERS', payload: [] });

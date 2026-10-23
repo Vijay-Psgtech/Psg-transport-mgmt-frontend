@@ -43,11 +43,22 @@ export function AuthProvider({ children }) {
     }
   }, [clearSession]);
 
+  const changePassword = useCallback(async (currentPassword, newPassword) => {
+    const { data } = await api.put('/auth/change-password', { currentPassword, newPassword });
+    setAccessToken(data.accessToken); // the server ended older sessions, so use the fresh token
+    setUser(data.user);
+  }, []);
+
+  const updateProfile = useCallback(async (payload) => {
+    const { data } = await api.put('/auth/me', payload);
+    setUser(data.user);
+  }, []);
+
   const hasRole = useCallback((...roles) => !!user && roles.flat().includes(user.role), [user]);
 
   const value = useMemo(
-    () => ({ user, initializing, isAuthenticated: !!user, login, logout, hasRole }),
-    [user, initializing, login, logout, hasRole]
+    () => ({ user, initializing, isAuthenticated: !!user, login, logout, hasRole, changePassword, updateProfile }),
+    [user, initializing, login, logout, hasRole, changePassword, updateProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
