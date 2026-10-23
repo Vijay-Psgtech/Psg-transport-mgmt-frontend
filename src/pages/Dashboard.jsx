@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useVehicles } from '../context/VehicleContext';
-import { MANAGER_ROLES, ROLE_LABELS, VEHICLE_TYPES, labelOf } from '../utils/constants';
+import { useUsers } from '../context/UserContext';
+import { MANAGER_ROLES, ROLES, ROLE_LABELS, VEHICLE_TYPES, labelOf } from '../utils/constants';
 
 function Figure({ value, label, tone = '' }) {
   return (
@@ -16,11 +17,16 @@ function Figure({ value, label, tone = '' }) {
 export default function Dashboard() {
   const { user, hasRole } = useAuth();
   const { stats, fetchStats } = useVehicles();
+  const { stats: peopleStats, fetchStats: fetchPeopleStats } = useUsers();
   const isManager = hasRole(MANAGER_ROLES);
+  const isAdmin = hasRole(ROLES.ADMIN);
 
   useEffect(() => {
-    if (isManager) fetchStats();
-  }, [isManager, fetchStats]);
+    if (isManager) {
+      fetchStats();
+      fetchPeopleStats();
+    }
+  }, [isManager, fetchStats, fetchPeopleStats]);
 
   return (
     <div>
@@ -31,21 +37,30 @@ export default function Dashboard() {
         <>
           <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Fleet summary">
             <Figure value={stats?.total} label="Vehicles in the fleet" />
-            <Figure value={stats?.byStatus?.active ?? 0} label="Active" />
+            <Figure value={stats?.byStatus?.active ?? 0} label="Active vehicles" />
             <Figure value={stats?.byStatus?.maintenance ?? 0} label="In maintenance" />
             <Figure
               value={stats?.docsDue ?? 0}
-              label="With documents expired or due within 30 days"
+              label="Vehicles with documents expired or due within 30 days"
               tone={stats?.docsDue ? 'text-red-700' : ''}
             />
+          </section>
+
+          <section className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="People summary">
+            <Figure value={peopleStats?.byRole?.driver ?? 0} label="Drivers" />
+            <Figure
+              value={peopleStats?.licenseDue ?? 0}
+              label="Active drivers with licence expired or due within 30 days"
+              tone={peopleStats?.licenseDue ? 'text-red-700' : ''}
+            />
+            {isAdmin && <Figure value={peopleStats?.active} label="Active user accounts" />}
+            {isAdmin && <Figure value={peopleStats ? peopleStats.total - peopleStats.active : undefined} label="Deactivated accounts" />}
           </section>
 
           <section className="mt-8 rounded-lg border border-line bg-white p-5">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-xl font-bold">Fleet by type</h2>
-              <Link to="/vehicles" className="text-sm font-medium underline underline-offset-4 hover:text-signal-dark">
-                Manage vehicles
-              </Link>
+              <Link to="/vehicles" className="text-sm font-medium underline underline-offset-4 hover:text-signal-dark">Manage vehicles</Link>
             </div>
             {stats && Object.keys(stats.byType).length ? (
               <ul className="mt-3 divide-y divide-line">
