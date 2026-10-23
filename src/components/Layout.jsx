@@ -1,10 +1,12 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MANAGER_ROLES, ROLE_LABELS } from '../utils/constants';
+import { MANAGER_ROLES, ROLES, ROLE_LABELS } from '../utils/constants';
 
 const NAV = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/vehicles', label: 'Vehicles', roles: MANAGER_ROLES },
+  { to: '/drivers', label: 'Drivers', roles: MANAGER_ROLES },
+  { to: '/users', label: 'Users', roles: [ROLES.ADMIN] },
 ];
 
 export default function Layout() {
@@ -32,10 +34,10 @@ export default function Layout() {
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
-            <div className="text-right leading-tight">
-              <p className="text-sm font-medium">{user.name}</p>
-              <p className="text-xs text-slate-400">{ROLE_LABELS[user.role]}</p>
-            </div>
+            <NavLink to="/profile" className="rounded-md px-2 py-1 text-right leading-tight hover:bg-asphalt-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-signal" aria-label="My account">
+              <span className="block text-sm font-medium">{user.name}</span>
+              <span className="block text-xs text-slate-400">{ROLE_LABELS[user.role]}</span>
+            </NavLink>
             <button
               onClick={logout}
               className="rounded-md border border-slate-600 px-3 py-1.5 text-sm hover:bg-asphalt-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
