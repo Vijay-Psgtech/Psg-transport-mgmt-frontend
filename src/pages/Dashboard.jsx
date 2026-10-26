@@ -20,7 +20,7 @@ const DOC_SERIES = [
   { key: 'valid', label: 'Valid beyond 90 days', color: COLORS.green },
 ];
 
-const grid = 'grid gap-4 md:grid-cols-2 xl:grid-cols-3';
+const grid = 'grid gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3';
 
 function Section({ title, description, children }) {
   return (
@@ -37,7 +37,7 @@ function Section({ title, description, children }) {
 function Skeleton() {
   return (
     <div className="mt-6 animate-pulse" role="status" aria-label="Loading dashboard">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 @2xl:grid-cols-3 @6xl:grid-cols-6">
         {Array.from({ length: 6 }, (_, i) => <div key={i} className="h-24 rounded-xl bg-white" />)}
       </div>
       <div className={`${grid} mt-8`}>
@@ -102,7 +102,7 @@ function ManagerDashboard() {
 
   return (
     <>
-      <section className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6" aria-label="Key figures">
+      <section className="mt-6 grid grid-cols-2 gap-3 @2xl:grid-cols-3 @6xl:grid-cols-6" aria-label="Key figures">
         <KpiCard label="Vehicles" value={v.total} hint={`${v.active} active`} icon="bus" to="/vehicles" />
         <KpiCard label="Seat capacity" value={v.activeSeats} hint="active vehicles" icon="seat" to="/vehicles" />
         <KpiCard label="Active drivers" value={d.active} hint={`${d.available} available`} icon="driver" to="/drivers" />
@@ -139,7 +139,7 @@ function ManagerDashboard() {
           <ChartCard
             title="Vehicle documents by expiry"
             subtitle="Each bar is one document type"
-            className="xl:col-span-2"
+            className="@5xl:col-span-2"
             empty={!charts.docRows.length}
             emptyText="No vehicle documents recorded yet. Add insurance, fitness, permit and PUC dates on each vehicle."
             summary={charts.docRows.map((r) => `${r.name}: ${DOC_SERIES.map((s) => `${r[s.key]} ${s.label.toLowerCase()}`).join(', ')}`).join('. ')}
@@ -166,7 +166,7 @@ function ManagerDashboard() {
           <ChartCard
             title="Driver experience"
             subtitle="Active drivers by years of experience"
-            className={isAdmin ? 'xl:col-span-2' : 'xl:col-span-3'}
+            className={isAdmin ? '@5xl:col-span-2' : '@5xl:col-span-3'}
             empty={!charts.experience.some((e) => e.value)}
             emptyText="Add years of experience to drivers to see this chart."
             summary={summarise(charts.experience)}
@@ -174,7 +174,7 @@ function ManagerDashboard() {
             <BarsChart data={charts.experience} color={COLORS.asphalt} valueLabel="Drivers" />
           </ChartCard>
           {isAdmin && users && (
-            <ChartCard title="User accounts by role" subtitle={`${users.active} active of ${users.total} accounts`} className="md:col-span-2 xl:col-span-1" summary={summarise(charts.roles)}>
+            <ChartCard title="User accounts by role" subtitle={`${users.active} active of ${users.total} accounts`} className="@2xl:col-span-2 @5xl:col-span-1" summary={summarise(charts.roles)}>
               <BarsChart data={charts.roles} horizontal color={COLORS.sage} valueLabel="Accounts" />
             </ChartCard>
           )}
@@ -197,7 +197,7 @@ export default function Dashboard() {
   const alerts = report ? report.vehicles.docsDue + report.drivers.licenceDue : 0;
 
   return (
-    <div>
+    <div className="@container">
       {/* Banner: asphalt with the painted centre line along the bottom edge */}
       <header className="relative overflow-hidden rounded-xl bg-asphalt px-5 pb-7 pt-5 text-white sm:px-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
