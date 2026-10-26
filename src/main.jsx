@@ -5,6 +5,7 @@ import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import { VehicleProvider } from './context/VehicleContext';
 import { UserProvider } from './context/UserContext';
+import { ReportProvider } from './context/ReportContext';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <VehicleProvider>
           <UserProvider>
-            <App />
+            <ReportProvider>
+              <App />
+            </ReportProvider>
           </UserProvider>
         </VehicleProvider>
       </AuthProvider>
