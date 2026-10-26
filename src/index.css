@@ -23,3 +23,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* Horizontal version of the painted centre line, used on the dashboard banner */
+.road-line-h {
+  background-image: repeating-linear-gradient(to right, var(--color-signal) 0 24px, transparent 24px 48px);
+}
