@@ -67,3 +67,6 @@ export const LICENSE_CLASSES = [
 
 export const PHONE_REGEX = /^\+?[\d\s-]{7,15}$/;
 export const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
+
+// Compact names for charts and lists where space is tight
+export const DOCUMENT_SHORT = { registration: 'RC', insurance: 'Insurance', fitness: 'Fitness', permit: 'Permit', puc: 'PUC', tax: 'Road tax' };

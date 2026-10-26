@@ -53,3 +53,11 @@ export function generatePassword(length = 12) {
   }
   return chars.join('');
 }
+
+// "Expired 3 days ago" / "Due in 12 days"
+export function dueText(date) {
+  const days = Math.ceil((new Date(date) - Date.now()) / 86400000);
+  if (days < 0) return `Expired ${-days} day${days === -1 ? '' : 's'} ago`;
+  if (days === 0) return 'Expires today';
+  return `Due in ${days} day${days === 1 ? '' : 's'}`;
+}
