@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Field, { inputCls } from './Field';
+import api from '../api/axios';
 import {
   VEHICLE_TYPES, FUEL_TYPES, VEHICLE_STATUSES, DOCUMENT_TYPES, REG_NO_REGEX,
 } from '../utils/constants';
@@ -22,7 +23,9 @@ function toFormState(v) {
     assignedDriver: v.assignedDriver?._id || v.assignedDriver || '',
     gpsDeviceId: v.gpsDeviceId ?? '', notes: v.notes ?? '',
     documents: (v.documents || []).map((d) => ({
+      _id: d._id,
       type: d.type, number: d.number ?? '', issueDate: toDateInput(d.issueDate), expiryDate: toDateInput(d.expiryDate),
+      proofImage: d.proofImage ?? null, proofFile: null,
     })),
   };
 }
@@ -49,6 +52,8 @@ function toPayload(f) {
     gpsDeviceId: orNull(f.gpsDeviceId.trim()),
     notes: orNull(f.notes.trim()),
     documents: f.documents.map((d) => ({
+      _id: d._id,
+      removeProof: !d.proofImage && !d.proofFile,
       type: d.type, number: orNull(d.number.trim()), issueDate: orNull(d.issueDate), expiryDate: d.expiryDate,
     })),
   };
@@ -68,8 +73,55 @@ function validate(f) {
   const seats = Number(f.seatingCapacity);
   if (f.seatingCapacity === '' || seats < 1 || seats > 100) e.seatingCapacity = 'Enter seats between 1 and 100.';
   if (f.odometer !== '' && Number(f.odometer) < 0) e.odometer = 'Odometer cannot be negative.';
-  if (f.documents.some((d) => !d.expiryDate)) e.documents = 'Every document needs an expiry date.';
+  const documentErrors = [];
+  if (f.documents.some((d) => !d.expiryDate)) documentErrors.push('Every document needs an expiry date.');
+  if (f.documents.some((d) => d.proofFile?.size > 5 * 1024 * 1024)) {
+    documentErrors.push('Each proof image must be 5 MB or smaller.');
+  }
+  if (documentErrors.length) e.documents = documentErrors.join(' ');
   return e;
+}
+
+function DocumentProofPreview({ proof, file, vehicleId }) {
+  const [src, setSrc] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl;
+    setSrc(null);
+    setError('');
+
+    async function loadProof() {
+      if (file) {
+        objectUrl = URL.createObjectURL(file);
+        if (active) setSrc(objectUrl);
+        return;
+      }
+      if (!proof?.filename || !vehicleId) return;
+
+      try {
+        const { data } = await api.get(
+          `/vehicles/${vehicleId}/documents/${encodeURIComponent(proof.filename)}`,
+          { responseType: 'blob' }
+        );
+        objectUrl = URL.createObjectURL(data);
+        if (active) setSrc(objectUrl);
+      } catch (loadError) {
+        if (active) setError(getErrorMessage(loadError));
+      }
+    }
+
+    loadProof();
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [file, proof?.filename, vehicleId]);
+
+  if (error) return <p role="alert" className="text-xs text-red-700">{error}</p>;
+  if (!src) return null;
+  return <img src={src} alt="Document proof preview" className="max-h-40 max-w-full rounded border border-line object-contain" />;
 }
 
 export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
@@ -105,7 +157,18 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
     setSaving(true);
     setServerErrors([]);
     try {
-      await onSubmit(toPayload(form));
+      const payload = toPayload(form);
+      const proofFiles = [];
+      payload.documents = payload.documents.map((document, index) => {
+        const file = form.documents[index].proofFile;
+        if (!file) return document;
+        proofFiles.push(file);
+        return { ...document, proofUploadIndex: proofFiles.length - 1 };
+      });
+      const multipart = new FormData();
+      multipart.append('payload', JSON.stringify(payload));
+      proofFiles.forEach((file) => multipart.append('proofs', file));
+      await onSubmit(multipart);
     } catch (err) {
       const fieldErrors = err.response?.data?.errors;
       setServerErrors(fieldErrors ? Object.values(fieldErrors) : [getErrorMessage(err)]);
@@ -214,7 +277,7 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
           ) : (
             <div className="space-y-3">
               {form.documents.map((d, i) => (
-                <div key={i} className="grid items-end gap-3 rounded-md border border-line p-3 sm:grid-cols-[1.3fr_1fr_1fr_1fr_auto]">
+                <div key={d._id || i} className="grid items-end gap-3 rounded-md border border-line p-3 sm:grid-cols-[1.3fr_1fr_1fr_1fr_auto]">
                   <Field label="Document">
                     <select value={d.type} onChange={(e) => setDoc(i, 'type', e.target.value)} className={inputCls(false)}>
                       {DOCUMENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -232,6 +295,36 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
                   <button type="button" onClick={() => removeDoc(i)} aria-label={`Remove document ${i + 1}`} className="rounded-md px-2 py-2 text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
                     Remove
                   </button>
+                  <div className="sm:col-span-4">
+                    <Field label="Proof image" hint="JPG, PNG, or WebP; up to 5 MB.">
+                      <input
+                        key={`${d._id || i}-${d.proofFile?.name || 'empty'}`}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setDoc(i, 'proofFile', file);
+                          if (file) setDoc(i, 'proofImage', null);
+                        }}
+                        className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-canvas file:px-3 file:py-2 file:text-sm file:font-medium"
+                      />
+                    </Field>
+                    {(d.proofFile || d.proofImage) && (
+                      <div className="mt-2 flex flex-wrap items-start gap-3">
+                        <DocumentProofPreview proof={d.proofImage} file={d.proofFile} vehicleId={vehicle?._id} />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDoc(i, 'proofFile', null);
+                            setDoc(i, 'proofImage', null);
+                          }}
+                          className="text-xs font-medium text-red-700 underline underline-offset-2"
+                        >
+                          Remove proof image
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
