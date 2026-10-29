@@ -12,7 +12,12 @@ const PATHS = {
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   close: <path d="M6 6l12 12M18 6L6 18" />,
   collapse: <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />,
-  wrench: (<><path d="M14.7 2.3a1 1 0 011.4 0l2.6 2.6a1 1 0 010 1.4l-1.8 1.8a5.5 5.5 0 11-7.8 7.8L6.3 15a1 1 0 01-1.4-1.4l2.6-2.6a1 1 0 010-1.4l-2-2a1 1 0 010-1.4l2.6-2.6z" /></>),
+  wrench: <path d="M14.7 6.3a4 4 0 005 5l-9.6 9.6a2.1 2.1 0 01-3-3l9.6-9.6a4 4 0 00-2-2zM15 3.5a4 4 0 00-1.3 4.4" />,
+  calendar: (<><rect x="3.5" y="5" width="17" height="15.5" rx="2" /><path d="M3.5 10h17M8 3v4M16 3v4" /></>),
+  wallet: (<><path d="M4 7.5A2.5 2.5 0 016.5 5H18v3" /><rect x="3.5" y="7.5" width="17" height="12" rx="2" /><circle cx="16.5" cy="13.5" r="1" /></>),
+  plus: <path d="M12 5v14M5 12h14" />,
+  clock: (<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
+  filter: <path d="M4 6h16M7 12h10M10 18h4" />,
   check: (<><circle cx="12" cy="12" r="9" /><path d="M8 12.5l3 3 5-6" /></>),
 };
 
