@@ -181,8 +181,8 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
   const heading = 'mb-3 font-display text-base font-bold';
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <div className="space-y-6 px-5 py-5">
+    <form onSubmit={handleSubmit} noValidate className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="space-y-6 px-5 py-5 overflow-y-auto overflow-x-hidden overscroll-contain">
         {serverErrors.length > 0 && (
           <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
             <p className="font-medium">The vehicle was not saved.</p>

@@ -110,8 +110,8 @@ export default function ServiceRecordForm({ record, vehicles, onSubmit, onCancel
   };
 
   return (
-    <form onSubmit={submit} noValidate>
-      <div className="grid gap-4 px-5 py-5 sm:grid-cols-2">
+    <form onSubmit={submit} noValidate className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="grid gap-4 px-5 py-5 sm:grid-cols-2 overflow-y-auto overflow-x-hidden overscroll-contain">
         {serverError && <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 sm:col-span-2">{serverError}</p>}
 
         <Field label="Vehicle" required error={errors.vehicle}>
