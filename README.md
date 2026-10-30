@@ -15,7 +15,7 @@ The backend must be running and an administrator account must already exist. See
 
 - **Sign in:** work-email/password form; accounts are provisioned by an administrator.
 - **Fleet overview:** vehicle totals, status counts, search, and status filtering.
-- **Vehicle form:** create and edit buses and cars, with driver, fuel, status, and notes fields.
+- **Vehicle form:** create and edit buses and cars, with driver, fuel, FASTag, status, and notes fields. FASTag details are collected when availability is set to Yes.
 - **Role-aware actions:** admins and managers can add, edit, and remove vehicles; operators have read-only access.
 
 The API session is held in an HTTP-only cookie. The Context API exposes the current user and role-derived vehicle permissions to components; authorization is also enforced on the server.

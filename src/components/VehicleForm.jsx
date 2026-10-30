@@ -9,6 +9,7 @@ import { getErrorMessage, toDateInput } from '../utils/helpers';
 const EMPTY = {
   vehicleType: 'bus', regNo: '', make: '', model: '', manufactureYear: '', color: '',
   fuelType: 'diesel', seatingCapacity: '', chassisNo: '', engineNo: '', odometer: '',
+  fastagAvailable: false, fastagIssuingBank: '', fastagId: '', fastagStatus: '',
   status: 'active', assignedDriver: '', gpsDeviceId: '', notes: '', documents: [],
 };
 
@@ -19,6 +20,8 @@ function toFormState(v) {
     vehicleType: v.vehicleType, regNo: v.regNo, make: v.make, model: v.model,
     manufactureYear: v.manufactureYear ?? '', color: v.color ?? '', fuelType: v.fuelType,
     seatingCapacity: v.seatingCapacity ?? '', chassisNo: v.chassisNo ?? '', engineNo: v.engineNo ?? '',
+    fastagAvailable: v.fastagAvailable ?? false,
+    fastagIssuingBank: v.fastagIssuingBank ?? '', fastagId: v.fastagId ?? '', fastagStatus: v.fastagStatus ?? '',
     odometer: v.odometer ?? '', status: v.status,
     assignedDriver: v.assignedDriver?._id || v.assignedDriver || '',
     gpsDeviceId: v.gpsDeviceId ?? '', notes: v.notes ?? '',
@@ -46,6 +49,10 @@ function toPayload(f) {
     seatingCapacity: numOrNull(f.seatingCapacity),
     chassisNo: orNull(f.chassisNo.trim()),
     engineNo: orNull(f.engineNo.trim()),
+    fastagAvailable: f.fastagAvailable,
+    fastagIssuingBank: f.fastagAvailable ? orNull(f.fastagIssuingBank.trim()) : null,
+    fastagId: f.fastagAvailable ? orNull(f.fastagId.trim()) : null,
+    fastagStatus: f.fastagAvailable ? orNull(f.fastagStatus.trim()) : null,
     odometer: numOrNull(f.odometer),
     status: f.status,
     assignedDriver: orNull(f.assignedDriver),
@@ -73,6 +80,11 @@ function validate(f) {
   const seats = Number(f.seatingCapacity);
   if (f.seatingCapacity === '' || seats < 1 || seats > 100) e.seatingCapacity = 'Enter seats between 1 and 100.';
   if (f.odometer !== '' && Number(f.odometer) < 0) e.odometer = 'Odometer cannot be negative.';
+  if (f.fastagAvailable) {
+    if (!f.fastagIssuingBank.trim()) e.fastagIssuingBank = 'Enter the FASTag issuing bank.';
+    if (!f.fastagId.trim()) e.fastagId = 'Enter the FASTag ID.';
+    if (!f.fastagStatus.trim()) e.fastagStatus = 'Enter the FASTag status.';
+  }
   const documentErrors = [];
   if (f.documents.some((d) => !d.expiryDate)) documentErrors.push('Every document needs an expiry date.');
   if (f.documents.some((d) => d.proofFile?.size > 5 * 1024 * 1024)) {
@@ -236,6 +248,39 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
             <Field label="Engine number">
               <input value={form.engineNo} onChange={set('engineNo')} className={inputCls(false)} />
             </Field>
+            <Field label="FASTag available">
+              <select
+                value={form.fastagAvailable ? 'yes' : 'no'}
+                onChange={(e) => {
+                  const available = e.target.value === 'yes';
+                  setForm((f) => ({
+                    ...f,
+                    fastagAvailable: available,
+                    ...(available ? {} : { fastagIssuingBank: '', fastagId: '', fastagStatus: '' }),
+                  }));
+                  setErrors((current) => ({
+                    ...current, fastagIssuingBank: undefined, fastagId: undefined, fastagStatus: undefined,
+                  }));
+                }}
+                className={inputCls(false)}
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </Field>
+            {form.fastagAvailable && (
+              <>
+                <Field label="Issuing bank" required error={errors.fastagIssuingBank}>
+                  <input value={form.fastagIssuingBank} onChange={set('fastagIssuingBank')} className={inputCls(errors.fastagIssuingBank)} />
+                </Field>
+                <Field label="FASTag ID" required error={errors.fastagId}>
+                  <input value={form.fastagId} onChange={set('fastagId')} className={inputCls(errors.fastagId)} />
+                </Field>
+                <Field label="FASTag status" required error={errors.fastagStatus}>
+                  <input value={form.fastagStatus} onChange={set('fastagStatus')} placeholder="Active" className={inputCls(errors.fastagStatus)} />
+                </Field>
+              </>
+            )}
             <Field label="GPS device ID" hint="Used later for live tracking.">
               <input value={form.gpsDeviceId} onChange={set('gpsDeviceId')} className={inputCls(false)} />
             </Field>
