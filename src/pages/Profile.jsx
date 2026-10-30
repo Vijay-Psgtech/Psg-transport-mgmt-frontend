@@ -16,7 +16,8 @@ export default function Profile() {
     e.preventDefault();
     const found = {};
     if (!form.name.trim()) found.name = 'Enter your name.';
-    if (form.phone && !PHONE_REGEX.test(form.phone)) found.phone = 'Enter a valid phone number.';
+    if (!form.phone.trim()) found.phone = 'Enter your phone number.';
+    else if (!PHONE_REGEX.test(form.phone.trim())) found.phone = 'Enter a valid phone number.';
     setErrors(found);
     if (Object.keys(found).length) return;
 
@@ -43,11 +44,11 @@ export default function Profile() {
           <Field label="Name" required error={errors.name}>
             <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className={inputCls(errors.name)} />
           </Field>
-          <Field label="Phone" error={errors.phone}>
-            <input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} className={inputCls(errors.phone)} />
+          <Field label="Phone" required error={errors.phone}>
+            <input type="tel" required value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} className={inputCls(errors.phone)} />
           </Field>
-          <Field label="Email" hint="Ask an administrator to change your email.">
-            <input value={user.email} disabled className={`${inputCls(false)} bg-canvas text-slate-500`} />
+          <Field label="Email" hint="Optional. Ask an administrator to change your email.">
+            <input value={user.email || ''} disabled className={`${inputCls(false)} bg-canvas text-slate-500`} />
           </Field>
           <div className="flex items-end gap-3 sm:col-span-2">
             <button type="submit" disabled={saving} className="rounded-md bg-signal px-4 py-2 text-sm font-semibold text-asphalt hover:bg-signal-dark disabled:opacity-60">

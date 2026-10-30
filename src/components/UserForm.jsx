@@ -18,7 +18,7 @@ function toFormState(user, fixedRole) {
   const p = user.driverProfile || {};
   return {
     ...EMPTY,
-    name: user.name, email: user.email, phone: user.phone ?? '', idNumber: user.idNumber ?? '', role: user.role,
+    name: user.name, email: user.email ?? '', phone: user.phone ?? '', idNumber: user.idNumber ?? '', role: user.role,
     licenseNumber: p.licenseNumber ?? '', licenseClass: p.licenseClass ?? 'HPMV', licenseExpiry: toDateInput(p.licenseExpiry),
     badgeNumber: p.badgeNumber ?? '', bloodGroup: p.bloodGroup ?? '', dateOfBirth: toDateInput(p.dateOfBirth),
     dateOfJoining: toDateInput(p.dateOfJoining), experienceYears: p.experienceYears ?? '', address: p.address ?? '',
@@ -32,7 +32,7 @@ const orNull = (v) => (v === '' || v === undefined ? null : typeof v === 'string
 function toPayload(f, creating) {
   const payload = {
     name: f.name.trim(),
-    email: f.email.trim(),
+    email: orNull(f.email),
     phone: orNull(f.phone),
     idNumber: orNull(f.idNumber),
     role: f.role,
@@ -59,9 +59,9 @@ function toPayload(f, creating) {
 function validate(f, creating) {
   const e = {};
   if (!f.name.trim()) e.name = 'Enter the full name.';
-  if (!f.email.trim()) e.email = 'Enter an email address.';
-  else if (!EMAIL_REGEX.test(f.email.trim())) e.email = 'Enter a valid email address.';
-  if (f.phone && !PHONE_REGEX.test(f.phone)) e.phone = 'Enter a valid phone number.';
+  if (f.email.trim() && !EMAIL_REGEX.test(f.email.trim())) e.email = 'Enter a valid email address.';
+  if (!f.phone.trim()) e.phone = 'Enter a phone number.';
+  else if (!PHONE_REGEX.test(f.phone.trim())) e.phone = 'Enter a valid phone number.';
   if (creating) {
     const issue = passwordIssue(f.password);
     if (issue) e.password = issue;
@@ -116,8 +116,8 @@ export default function UserForm({ user, fixedRole, roleLocked, onSubmit, onCanc
   const isDriver = form.role === 'driver';
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <div className="space-y-6 px-5 py-5">
+    <form onSubmit={handleSubmit} noValidate className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="space-y-6 px-5 py-5 overflow-y-auto overflow-x-hidden overscroll-contain">
         {serverErrors.length > 0 && (
           <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
             <p className="font-medium">The account was not saved.</p>
@@ -131,11 +131,11 @@ export default function UserForm({ user, fixedRole, roleLocked, onSubmit, onCanc
             <Field label="Full name" required error={errors.name}>
               <input value={form.name} onChange={set('name')} className={inputCls(errors.name)} autoFocus />
             </Field>
-            <Field label="Email" required error={errors.email} hint="Used to sign in.">
+            <Field label="Email" error={errors.email} hint="Optional.">
               <input type="email" value={form.email} onChange={set('email')} className={inputCls(errors.email)} />
             </Field>
-            <Field label="Phone" error={errors.phone}>
-              <input value={form.phone} onChange={set('phone')} placeholder="9876543210" className={inputCls(errors.phone)} />
+            <Field label="Phone" required error={errors.phone} hint="Used to sign in.">
+              <input type="tel" required value={form.phone} onChange={set('phone')} placeholder="9876543210" className={inputCls(errors.phone)} />
             </Field>
             <Field label="Role" required hint={roleLocked ? 'Fixed for this screen.' : undefined}>
               <select value={form.role} onChange={set('role')} disabled={roleLocked} className={`${inputCls(false)} disabled:bg-canvas`}>

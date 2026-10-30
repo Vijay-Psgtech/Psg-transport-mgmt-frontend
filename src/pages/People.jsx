@@ -66,14 +66,14 @@ export default function People({ driversOnly = false }) {
       setNotice(`${res.data.name}: ${res.message.toLowerCase()}.`);
     } else {
       const res = await createUser(payload);
-      setCredentials({ name: res.data.name, email: res.data.email, password: formState.password });
+      setCredentials({ name: res.data.name, email: res.data.email, phone: res.data.phone, password: formState.password });
     }
     setForm(null);
   };
 
   const handleReset = async (password) => {
     await resetPassword(resetFor._id, password);
-    setCredentials({ name: resetFor.name, email: resetFor.email, password, reset: true });
+    setCredentials({ name: resetFor.name, email: resetFor.email, phone: resetFor.phone, password, reset: true });
     setResetFor(null);
   };
 

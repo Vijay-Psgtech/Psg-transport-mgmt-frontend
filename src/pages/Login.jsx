@@ -11,7 +11,8 @@ export default function Login() {
   const from = location.state?.from?.pathname || '/';
   const institution = import.meta.env.VITE_INSTITUTION_NAME || 'Your Institution';
 
-  const [email, setEmail] = useState('');
+  const [method, setMethod] = useState('email');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -21,14 +22,14 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email.trim() || !password) {
-      setError('Enter your email and password.');
+    if (!identifier.trim() || !password) {
+      setError(`Enter your ${method === 'phone' ? 'phone number' : 'email'} and password.`);
       return;
     }
     setSubmitting(true);
     setError('');
     try {
-      await login(email.trim(), password);
+      await login(identifier.trim(), password, method);
       navigate(from, { replace: true });
     } catch (err) {
       setError(getErrorMessage(err));
@@ -56,7 +57,7 @@ export default function Login() {
       <main className="flex items-center justify-center px-6 py-12">
         <form onSubmit={handleSubmit} className="w-full max-w-sm" noValidate>
           <h2 className="font-display text-3xl font-bold">Sign in</h2>
-          <p className="mt-1 text-sm text-slate-600">Use the account issued by your transport office.</p>
+          <p className="mt-1 text-sm text-slate-600">Sign in with your email or phone number and password.</p>
 
           {error && (
             <div role="alert" className="mt-5 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
@@ -65,16 +66,34 @@ export default function Login() {
           )}
 
           <div className="mt-6 space-y-4">
+            <div className="grid grid-cols-2 rounded-md border border-line p-1" role="group" aria-label="Sign-in method">
+              <button
+                type="button"
+                aria-pressed={method === 'email'}
+                onClick={() => { setMethod('email'); setIdentifier(''); setError(''); }}
+                className={`rounded px-3 py-2 text-sm font-medium ${method === 'email' ? 'bg-asphalt text-white' : 'text-slate-600 hover:bg-canvas'}`}
+              >
+                Email
+              </button>
+              <button
+                type="button"
+                aria-pressed={method === 'phone'}
+                onClick={() => { setMethod('phone'); setIdentifier(''); setError(''); }}
+                className={`rounded px-3 py-2 text-sm font-medium ${method === 'phone' ? 'bg-asphalt text-white' : 'text-slate-600 hover:bg-canvas'}`}
+              >
+                Phone number
+              </button>
+            </div>
             <label className="block">
-              <span className="mb-1 block text-sm font-medium">Email</span>
+              <span className="mb-1 block text-sm font-medium">{method === 'phone' ? 'Phone number' : 'Email'}</span>
               <input
-                type="email"
+                type={method === 'phone' ? 'tel' : 'email'}
                 autoComplete="username"
                 autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 className={inputCls(false)}
-                placeholder="name@institute.edu"
+                placeholder={method === 'phone' ? '9876543210' : 'name@institute.edu'}
               />
             </label>
 

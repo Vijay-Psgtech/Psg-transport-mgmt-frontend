@@ -28,8 +28,9 @@ export function AuthProvider({ children }) {
     return () => { cancelled = true; };
   }, [clearSession]);
 
-  const login = useCallback(async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password });
+  const login = useCallback(async (identifier, password, method = 'email') => {
+    const credentials = method === 'phone' ? { phone: identifier } : { email: identifier };
+    const { data } = await api.post('/auth/login', { ...credentials, password });
     setAccessToken(data.accessToken);
     setUser(data.user);
     return data.user;

@@ -44,13 +44,13 @@ export default function UserTable({ users, variant, currentUserId, isAdmin, onEd
                 <td className="px-4 py-3">
                   <p className="font-semibold">{u.name}{self && <span className="ml-2 text-xs font-normal text-slate-500">(you)</span>}</p>
                   {drivers && u.driverProfile?.bloodGroup && <p className="text-xs text-slate-500">Blood group {u.driverProfile.bloodGroup}</p>}
-                  {!drivers && <p className="text-xs text-slate-500">{u.email}</p>}
+                  {!drivers && <p className="text-xs text-slate-500">{u.email || 'No email'}</p>}
                 </td>
 
                 {!drivers && <td className="whitespace-nowrap px-4 py-3">{ROLE_LABELS[u.role]}</td>}
 
                 <td className="px-4 py-3">
-                  {drivers && <p>{u.email}</p>}
+                  {drivers && u.email && <p>{u.email}</p>}
                   <p className={drivers ? 'text-xs text-slate-500' : ''}>{u.phone || (drivers ? 'No phone' : '-')}</p>
                 </td>
 

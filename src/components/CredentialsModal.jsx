@@ -6,7 +6,7 @@ export default function CredentialsModal({ credentials, onClose }) {
   const [copied, setCopied] = useState(false);
   if (!credentials) return null;
 
-  const text = `Email: ${credentials.email}\nTemporary password: ${credentials.password}`;
+  const text = `Phone: ${credentials.phone}\n${credentials.email ? `Email: ${credentials.email}\n` : ''}Temporary password: ${credentials.password}`;
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(text);
@@ -21,11 +21,12 @@ export default function CredentialsModal({ credentials, onClose }) {
     <Modal open title={credentials.reset ? 'Password reset' : 'Account created'} size="max-w-md" onClose={onClose}>
       <div className="space-y-4 px-5 py-5 text-sm">
         <p>
-          Share these sign-in details with <strong>{credentials.name}</strong>. This is the only time the password is shown.
+          Share these sign-in details with <strong>{credentials.name}</strong>. They can sign in with their phone number or email. This is the only time the password is shown.
           They will be asked to choose their own at first sign in.
         </p>
         <dl className="space-y-2 rounded-md border border-line bg-canvas p-3">
-          <div><dt className="text-xs text-slate-500">Email</dt><dd className="font-medium break-all">{credentials.email}</dd></div>
+          <div><dt className="text-xs text-slate-500">Phone number</dt><dd className="font-medium">{credentials.phone || '-'}</dd></div>
+          {credentials.email && <div><dt className="text-xs text-slate-500">Email</dt><dd className="font-medium break-all">{credentials.email}</dd></div>}
           <div><dt className="text-xs text-slate-500">Temporary password</dt><dd className="font-mono text-base font-semibold">{credentials.password}</dd></div>
         </dl>
       </div>
