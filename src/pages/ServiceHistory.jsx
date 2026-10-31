@@ -410,7 +410,7 @@ export default function ServiceHistory() {
         onClose={() => setModal(null)}
         size="max-w-3xl"
       >
-        {modal && <ServiceRecordForm record={modal.record} vehicles={vehicles} onSubmit={saveRecord} onCancel={() => setModal(null)} />}
+        {modal && <ServiceRecordForm record={modal.record} onSubmit={saveRecord} onCancel={() => setModal(null)} />}
       </Modal>
 
       <ConfirmModal
