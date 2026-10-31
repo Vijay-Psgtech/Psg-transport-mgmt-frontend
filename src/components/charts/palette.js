@@ -14,7 +14,7 @@ export const COLORS = {
   paleAmber: '#f7dc8a',
 };
 
-export const TYPE_COLORS = { bus: COLORS.asphalt, minibus: COLORS.signal, van: COLORS.blue, car: COLORS.sage };
+export const TYPE_COLORS = { bus: COLORS.signal, minibus: COLORS.asphalt, van: COLORS.blue, car_hatchback: COLORS.sage, car_suv: COLORS.rust, car_sedan: COLORS.lilac };
 export const FUEL_COLOR = COLORS.blue;
 export const STATUS_COLORS = { active: COLORS.green, maintenance: COLORS.amber, inactive: COLORS.slate };
 export const CLASS_COLORS = { LMV: COLORS.sage, HMV: COLORS.blue, HPMV: COLORS.asphalt, unknown: COLORS.slate };

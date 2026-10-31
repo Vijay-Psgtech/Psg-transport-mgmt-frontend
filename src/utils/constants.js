@@ -23,9 +23,9 @@ export const VEHICLE_TYPES = [
   { value: 'bus', label: 'Bus' },
   { value: 'minibus', label: 'Mini bus' },
   { value: 'van', label: 'Van' },
-  { value: 'car-hatchback', label: 'Car (Hatchback)' },
-  { value: 'car-suv', label: 'Car (SUV)' },
-  { value: 'car-sedan', label: 'Car (Sedan)' },
+  { value: 'car_hatchback', label: 'Car (Hatchback)' },
+  { value: 'car_suv', label: 'Car (SUV)' },
+  { value: 'car_sedan', label: 'Car (Sedan)' },
 ];
 
 export const FUEL_TYPES = [
