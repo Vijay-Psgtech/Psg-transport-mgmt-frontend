@@ -189,12 +189,12 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
     }
   };
 
-  const section = 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3';
+  const section = 'grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0';
   const heading = 'mb-3 font-display text-base font-bold';
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <div className="space-y-6 px-5 py-5 overflow-y-auto overflow-x-hidden overscroll-contain">
+    <form onSubmit={handleSubmit} noValidate className="flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col overflow-hidden">
+      <div className="min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-5 sm:flex-initial sm:px-5">
         {serverErrors.length > 0 && (
           <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
             <p className="font-medium">The vehicle was not saved.</p>
@@ -202,7 +202,7 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
           </div>
         )}
 
-        <fieldset>
+        <fieldset className="min-w-0">
           <legend className={heading}>Identification</legend>
           <div className={section}>
             <Field label="Vehicle type" required>
@@ -228,7 +228,7 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset className="min-w-0">
           <legend className={heading}>Specifications</legend>
           <div className={section}>
             <Field label="Seating capacity" required error={errors.seatingCapacity}>
@@ -287,7 +287,7 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset className="min-w-0">
           <legend className={heading}>Operations</legend>
           <div className={section}>
             <Field label="Status">
@@ -307,7 +307,7 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset className="min-w-0">
           <div className="mb-3 flex items-center justify-between">
             <legend className="font-display text-base font-bold">Documents and expiry dates</legend>
             <button type="button" onClick={addDoc} className="rounded-md border border-line px-3 py-1.5 text-sm font-medium hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
@@ -322,7 +322,7 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
           ) : (
             <div className="space-y-3">
               {form.documents.map((d, i) => (
-                <div key={d._id || i} className="grid items-end gap-3 rounded-md border border-line p-3 sm:grid-cols-[1.3fr_1fr_1fr_1fr_auto]">
+                <div key={d._id || i} className="grid min-w-0 items-end gap-3 rounded-md border border-line p-3 sm:grid-cols-[1.3fr_1fr_1fr_1fr_auto] [&>*]:min-w-0">
                   <Field label="Document">
                     <select value={d.type} onChange={(e) => setDoc(i, 'type', e.target.value)} className={inputCls(false)}>
                       {DOCUMENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -377,7 +377,7 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
         </fieldset>
       </div>
 
-      <div className="flex justify-end gap-3 border-t border-line px-5 py-4">
+      <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-line px-4 py-4 sm:flex-row sm:justify-end sm:gap-3 sm:px-5">
         <button type="button" onClick={onCancel} className="rounded-md border border-line px-4 py-2 text-sm font-medium hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
           Cancel
         </button>

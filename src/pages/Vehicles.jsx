@@ -76,7 +76,7 @@ export default function Vehicles() {
   const filtered = filters.search || filters.vehicleType || filters.status;
 
   return (
-    <div>
+    <div className="min-w-0 w-full">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold">Vehicles</h1>
