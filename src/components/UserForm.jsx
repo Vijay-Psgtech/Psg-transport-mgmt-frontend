@@ -111,13 +111,13 @@ export default function UserForm({ user, fixedRole, roleLocked, onSubmit, onCanc
     }
   };
 
-  const grid = 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3';
+  const grid = 'grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0';
   const heading = 'mb-3 font-display text-base font-bold';
   const isDriver = form.role === 'driver';
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <div className="space-y-6 px-5 py-5 overflow-y-auto overflow-x-hidden overscroll-contain">
+    <form onSubmit={handleSubmit} noValidate className="flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col overflow-hidden">
+      <div className="min-h-0 min-w-0 flex-1 space-y-6 overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-5 sm:flex-initial sm:px-5">
         {serverErrors.length > 0 && (
           <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
             <p className="font-medium">The account was not saved.</p>
@@ -125,7 +125,7 @@ export default function UserForm({ user, fixedRole, roleLocked, onSubmit, onCanc
           </div>
         )}
 
-        <fieldset>
+        <fieldset className="min-w-0">
           <legend className={heading}>Account</legend>
           <div className={grid}>
             <Field label="Full name" required error={errors.name}>
@@ -161,7 +161,7 @@ export default function UserForm({ user, fixedRole, roleLocked, onSubmit, onCanc
 
         {isDriver && (
           <>
-            <fieldset>
+            <fieldset className="min-w-0">
               <legend className={heading}>Driving licence</legend>
               <div className={grid}>
                 <Field label="Licence number" required error={errors.licenseNumber}>
@@ -187,7 +187,7 @@ export default function UserForm({ user, fixedRole, roleLocked, onSubmit, onCanc
               </div>
             </fieldset>
 
-            <fieldset>
+            <fieldset className="min-w-0">
               <legend className={heading}>Personal and emergency details</legend>
               <div className={grid}>
                 <Field label="Date of birth">

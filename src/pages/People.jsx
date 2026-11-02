@@ -93,7 +93,7 @@ export default function People({ driversOnly = false }) {
   const title = driversOnly ? 'Drivers' : 'Users';
 
   return (
-    <div>
+    <div className="min-w-0 w-full">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold">{title}</h1>
@@ -111,29 +111,29 @@ export default function People({ driversOnly = false }) {
 
       {notice && <div role="status" className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{notice}</div>}
 
-      <div className={`mt-5 grid gap-3 ${driversOnly ? 'sm:grid-cols-[1fr_200px]' : 'sm:grid-cols-[1fr_200px_160px]'}`}>
+      <div className={`mt-5 grid min-w-0 gap-3 ${driversOnly ? 'sm:grid-cols-[minmax(0,1fr)_200px]' : 'sm:grid-cols-[minmax(0,1fr)_200px_160px]'}`}>
         <input
           type="search"
           value={filters.search}
           onChange={change('search')}
           placeholder={driversOnly ? 'Search by name, phone, email or licence number' : 'Search by name, email, phone or ID'}
           aria-label={`Search ${noun}s`}
-          className={inputCls(false)}
+          className={`${inputCls(false)} min-w-0`}
         />
         {!driversOnly && (
-          <select value={filters.role} onChange={change('role')} aria-label="Filter by role" className={inputCls(false)}>
+          <select value={filters.role} onChange={change('role')} aria-label="Filter by role" className={`${inputCls(false)} min-w-0`}>
             <option value="">All roles</option>
             {ROLE_OPTIONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
         )}
-        <select value={filters.status} onChange={change('status')} aria-label="Filter by status" className={inputCls(false)}>
+        <select value={filters.status} onChange={change('status')} aria-label="Filter by status" className={`${inputCls(false)} min-w-0`}>
           <option value="">All statuses</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
         </select>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-line bg-white">
+      <div className="mt-4 min-w-0 overflow-hidden rounded-lg border border-line bg-white">
         {error ? (
           <div role="alert" className="p-6 text-sm text-red-800">
             {error} <button className="underline" onClick={() => fetchUsers(params)}>Try again</button>
