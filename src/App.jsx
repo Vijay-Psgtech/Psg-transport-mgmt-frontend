@@ -10,11 +10,14 @@ import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
 import Unauthorized from './pages/Unauthorized';
 import { MANAGER_ROLES, ROLES } from './utils/constants';
+import useAutoLogout from './hooks/useAutoLogout';
 
 // The dashboard pulls in the charting library, so load it only when needed
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 
 export default function App() {
+  useAutoLogout();
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
