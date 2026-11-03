@@ -2,18 +2,14 @@ export const ROLES = {
   ADMIN: 'admin',
   TRANSPORT_OFFICER: 'transport_officer',
   DRIVER: 'driver',
-  STAFF: 'staff',
-  STUDENT: 'student',
-  PARENT: 'parent',
+  TRANSPORT_USER: 'transport_user',
 };
 
 export const ROLE_LABELS = {
   admin: 'Administrator',
   transport_officer: 'Transport officer',
   driver: 'Driver',
-  staff: 'Staff',
-  student: 'Student',
-  parent: 'Parent',
+  transport_user: 'Transport user',
 };
 
 // Roles that can view and maintain the fleet (mirrors the backend FLEET_MANAGERS)
