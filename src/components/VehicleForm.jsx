@@ -10,7 +10,7 @@ const EMPTY = {
   vehicleType: 'bus', regNo: '', make: '', model: '', manufactureYear: '', color: '',
   fuelType: 'diesel', seatingCapacity: '', chassisNo: '', engineNo: '', odometer: '',
   fastagAvailable: false, fastagIssuingBank: '', fastagId: '', fastagStatus: '',
-  status: 'active', assignedDriver: '', gpsDeviceId: '', notes: '', documents: [],
+  status: 'active', gpsDeviceId: '', notes: '', documents: [],
 };
 
 function toFormState(v) {
@@ -23,7 +23,6 @@ function toFormState(v) {
     fastagAvailable: v.fastagAvailable ?? false,
     fastagIssuingBank: v.fastagIssuingBank ?? '', fastagId: v.fastagId ?? '', fastagStatus: v.fastagStatus ?? '',
     odometer: v.odometer ?? '', status: v.status,
-    assignedDriver: v.assignedDriver?._id || v.assignedDriver || '',
     gpsDeviceId: v.gpsDeviceId ?? '', notes: v.notes ?? '',
     documents: (v.documents || []).map((d) => ({
       _id: d._id,
@@ -55,7 +54,6 @@ function toPayload(f) {
     fastagStatus: f.fastagAvailable ? orNull(f.fastagStatus.trim()) : null,
     odometer: numOrNull(f.odometer),
     status: f.status,
-    assignedDriver: orNull(f.assignedDriver),
     gpsDeviceId: orNull(f.gpsDeviceId.trim()),
     notes: orNull(f.notes.trim()),
     documents: f.documents.map((d) => ({
@@ -136,7 +134,7 @@ function DocumentProofPreview({ proof, file, vehicleId }) {
   return <img src={src} alt="Document proof preview" className="max-h-40 max-w-full rounded border border-line object-contain" />;
 }
 
-export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
+export default function VehicleForm({ vehicle, onSubmit, onCancel }) {
   const editing = Boolean(vehicle);
   const [form, setForm] = useState(() => toFormState(vehicle));
   const [errors, setErrors] = useState({});
@@ -293,12 +291,6 @@ export default function VehicleForm({ vehicle, drivers, onSubmit, onCancel }) {
             <Field label="Status">
               <select value={form.status} onChange={set('status')} className={inputCls(false)}>
                 {VEHICLE_STATUSES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </Field>
-            <Field label="Assigned driver" error={errors.assignedDriver}>
-              <select value={form.assignedDriver} onChange={set('assignedDriver')} className={inputCls(errors.assignedDriver)}>
-                <option value="">Unassigned</option>
-                {drivers.map((d) => <option key={d._id} value={d._id}>{d.name}{d.phone ? ` (${d.phone})` : ''}</option>)}
               </select>
             </Field>
             <Field label="Notes" className="sm:col-span-2 lg:col-span-3">

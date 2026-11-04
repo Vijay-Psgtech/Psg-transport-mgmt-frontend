@@ -11,8 +11,8 @@ import { getErrorMessage } from '../utils/helpers';
 export default function Vehicles() {
   const { hasRole } = useAuth();
   const {
-    vehicles, pagination, loading, error, drivers,
-    fetchVehicles, fetchDrivers, createVehicle, updateVehicle, deleteVehicle,
+    vehicles, pagination, loading, error,
+    fetchVehicles, createVehicle, updateVehicle, deleteVehicle,
   } = useVehicles();
   const canDelete = hasRole(ROLES.ADMIN);
 
@@ -32,8 +32,6 @@ export default function Vehicles() {
   useEffect(() => {
     fetchVehicles({ search: debouncedSearch, vehicleType: filters.vehicleType, status: filters.status, page: filters.page });
   }, [debouncedSearch, filters.vehicleType, filters.status, filters.page, fetchVehicles]);
-
-  useEffect(() => { fetchDrivers(); }, [fetchDrivers]);
 
   // If the last row of a page was deleted, step back one page
   useEffect(() => {
@@ -164,7 +162,6 @@ export default function Vehicles() {
           <VehicleForm
             key={modal.vehicle?._id || 'new'}
             vehicle={modal.vehicle}
-            drivers={drivers}
             onSubmit={handleSave}
             onCancel={() => setModal(null)}
           />

@@ -39,10 +39,6 @@ export default function VehicleTable({ vehicles, canDelete, onEdit, onDelete }) 
                   <dd>{v.seatingCapacity} · {labelOf(FUEL_TYPES, v.fuelType)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-slate-500">Driver</dt>
-                  <dd className="break-words">{v.assignedDriver?.name || <span className="text-slate-400">Unassigned</span>}</dd>
-                </div>
-                <div>
                   <dt className="text-xs text-slate-500">FASTag</dt>
                   <dd className="break-words">
                     {v.fastagAvailable ? `${v.fastagStatus || 'Available'}${v.fastagIssuingBank ? ` · ${v.fastagIssuingBank}` : ''}` : <span className="text-slate-400">No</span>}
@@ -73,7 +69,7 @@ export default function VehicleTable({ vehicles, canDelete, onEdit, onDelete }) 
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-line bg-canvas text-slate-600">
             <tr>
-              {['Registration', 'Make and model', 'Seats', 'Fuel', 'Driver', 'FASTag', 'Documents', 'Status', ''].map((h) => (
+              {['Registration', 'Make and model', 'Seats', 'Fuel', 'FASTag', 'Documents', 'Status', ''].map((h) => (
                 <th key={h} scope="col" className="whitespace-nowrap px-4 py-3 font-medium">{h || <span className="sr-only">Actions</span>}</th>
               ))}
             </tr>
@@ -94,7 +90,6 @@ export default function VehicleTable({ vehicles, canDelete, onEdit, onDelete }) 
                   </td>
                   <td className="px-4 py-3">{v.seatingCapacity}</td>
                   <td className="px-4 py-3">{labelOf(FUEL_TYPES, v.fuelType)}</td>
-                  <td className="px-4 py-3">{v.assignedDriver?.name || <span className="text-slate-400">Unassigned</span>}</td>
                   <td className="px-4 py-3">
                     {v.fastagAvailable
                       ? <><p>{v.fastagStatus}</p><p className="text-xs text-slate-500">{v.fastagIssuingBank} · {v.fastagId}</p></>

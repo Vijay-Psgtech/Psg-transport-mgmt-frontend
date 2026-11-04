@@ -10,7 +10,6 @@ const EMPTY_VEHICLE = {
   capacity: '',
   fuelType: 'diesel',
   status: 'active',
-  assignedDriver: '',
   notes: '',
 }
 
@@ -110,10 +109,6 @@ export default function VehicleModal({ vehicle, onClose, onSave, saving }) {
                 <option value="maintenance">Maintenance</option>
                 <option value="inactive">Inactive</option>
               </select>
-            </label>
-            <label className="text-sm font-medium text-slate-700 sm:col-span-2">
-              Assigned driver <span className="font-normal text-slate-400">(optional)</span>
-              <input className={inputClass} name="assignedDriver" value={form.assignedDriver} onChange={updateField} placeholder="Driver name" maxLength={100} />
             </label>
             <label className="text-sm font-medium text-slate-700 sm:col-span-2">
               Notes <span className="font-normal text-slate-400">(optional)</span>
