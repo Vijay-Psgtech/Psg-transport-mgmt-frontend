@@ -198,7 +198,6 @@ export default function People({ driversOnly = false }) {
         {toggleFor?.isActive ? (
           <>
             <p>They will be signed out and will not be able to sign in until you activate the account again.</p>
-            {toggleFor.assignedVehicle && <p className="font-medium">They will also be removed from vehicle {toggleFor.assignedVehicle.regNo}.</p>}
           </>
         ) : (
           <p>They will be able to sign in again with their current password.</p>
@@ -214,7 +213,6 @@ export default function People({ driversOnly = false }) {
         onClose={() => setDeleteFor(null)}
       >
         <p>This permanently removes the account and cannot be undone. To keep their history, deactivate the account instead.</p>
-        {deleteFor?.assignedVehicle && <p className="font-medium">They will also be removed from vehicle {deleteFor.assignedVehicle.regNo}.</p>}
       </ConfirmModal>
 
       <CredentialsModal credentials={credentials} onClose={() => setCredentials(null)} />

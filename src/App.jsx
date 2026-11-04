@@ -4,6 +4,8 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Vehicles from './pages/Vehicles';
+import VehicleAssignments from './pages/VehicleAssignments';
+import VehicleRequests from './pages/VehicleRequests';
 import ServiceHistory from './pages/ServiceHistory';
 import People from './pages/People';
 import Profile from './pages/Profile';
@@ -34,6 +36,8 @@ export default function App() {
         />
         <Route path="profile" element={<Profile />} />
         <Route path="vehicles" element={<ProtectedRoute roles={MANAGER_ROLES}><Vehicles /></ProtectedRoute>} />
+        <Route path="vehicle-assignments" element={<ProtectedRoute roles={MANAGER_ROLES}><VehicleAssignments /></ProtectedRoute>} />
+        <Route path="vehicle-requests" element={<ProtectedRoute roles={[ROLES.TRANSPORT_USER]}><VehicleRequests /></ProtectedRoute>} />
         <Route path="service-history" element={<ProtectedRoute roles={MANAGER_ROLES}><ServiceHistory /></ProtectedRoute>} />
         <Route path="drivers" element={<ProtectedRoute roles={MANAGER_ROLES}><People driversOnly /></ProtectedRoute>} />
         <Route path="users" element={<ProtectedRoute roles={[ROLES.ADMIN]}><People /></ProtectedRoute>} />

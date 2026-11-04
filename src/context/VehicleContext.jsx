@@ -8,7 +8,6 @@ const initialState = {
   vehicles: [],
   pagination: { page: 1, limit: 10, total: 0, pages: 1 },
   stats: null,
-  drivers: [],
   loading: false,
   error: null,
 };
@@ -23,8 +22,6 @@ function reducer(state, action) {
       return { ...state, loading: false, error: action.payload };
     case 'SET_STATS':
       return { ...state, stats: action.payload };
-    case 'SET_DRIVERS':
-      return { ...state, drivers: action.payload };
     default:
       return state;
   }
@@ -59,15 +56,6 @@ export function VehicleProvider({ children }) {
     }
   }, []);
 
-  const fetchDrivers = useCallback(async () => {
-    try {
-      const { data } = await api.get('/users/lookup', { params: { role: 'driver' } });
-      dispatch({ type: 'SET_DRIVERS', payload: data.data });
-    } catch {
-      dispatch({ type: 'SET_DRIVERS', payload: [] });
-    }
-  }, []);
-
   // Mutations throw on failure so the form can show the server's message
   const createVehicle = useCallback(async (payload) => {
     const { data } = await api.post('/vehicles', payload);
@@ -87,8 +75,8 @@ export function VehicleProvider({ children }) {
   }, [fetchVehicles]);
 
   const value = useMemo(
-    () => ({ ...state, fetchVehicles, fetchStats, fetchDrivers, createVehicle, updateVehicle, deleteVehicle }),
-    [state, fetchVehicles, fetchStats, fetchDrivers, createVehicle, updateVehicle, deleteVehicle]
+    () => ({ ...state, fetchVehicles, fetchStats, createVehicle, updateVehicle, deleteVehicle }),
+    [state, fetchVehicles, fetchStats, createVehicle, updateVehicle, deleteVehicle]
   );
 
   return <VehicleContext.Provider value={value}>{children}</VehicleContext.Provider>;

@@ -1,5 +1,5 @@
 import Badge from './Badge';
-import { ROLE_LABELS, VEHICLE_TYPES, labelOf } from '../utils/constants';
+import { ROLE_LABELS } from '../utils/constants';
 import { docStatus, formatDate, formatDateTime } from '../utils/helpers';
 
 const btn = 'rounded px-2 py-1 font-medium underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal';
@@ -65,14 +65,6 @@ function UserCard({ user, drivers, currentUserId, isAdmin, onEdit, onReset, onTo
               <dt className="text-xs text-slate-500">Licence</dt>
               <dd className="break-words"><Licence profile={user.driverProfile} /></dd>
             </div>
-            <div className="min-w-0">
-              <dt className="text-xs text-slate-500">Vehicle</dt>
-              <dd className="break-words">
-                {user.assignedVehicle
-                  ? <>{user.assignedVehicle.regNo} <span className="text-xs text-slate-500">{labelOf(VEHICLE_TYPES, user.assignedVehicle.vehicleType)}</span></>
-                  : <span className="text-slate-400">Unassigned</span>}
-              </dd>
-            </div>
           </>
         ) : (
           <>
@@ -123,7 +115,7 @@ function Licence({ profile }) {
 export default function UserTable({ users, variant, currentUserId, isAdmin, onEdit, onReset, onToggle, onDelete }) {
   const drivers = variant === 'drivers';
   const headers = drivers
-    ? ['Name', 'Contact', 'Licence', 'Vehicle', 'Status', '']
+    ? ['Name', 'Contact', 'Licence', 'Status', '']
     : ['Name', 'Role', 'Contact', 'ID', 'Last sign in', 'Status', ''];
 
   return (
@@ -174,11 +166,6 @@ export default function UserTable({ users, variant, currentUserId, isAdmin, onEd
                   {drivers ? (
                     <>
                       <td className="px-4 py-3"><Licence profile={u.driverProfile} /></td>
-                      <td className="whitespace-nowrap px-4 py-3">
-                        {u.assignedVehicle
-                          ? <>{u.assignedVehicle.regNo} <span className="text-xs text-slate-500">{labelOf(VEHICLE_TYPES, u.assignedVehicle.vehicleType)}</span></>
-                          : <span className="text-slate-400">Unassigned</span>}
-                      </td>
                     </>
                   ) : (
                     <>
