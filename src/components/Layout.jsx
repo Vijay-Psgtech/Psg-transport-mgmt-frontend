@@ -11,9 +11,15 @@ const NAV = [
     roles: MANAGER_ROLES, 
     items: [
       { to: '/vehicles', label: 'Vehicles', icon: 'bus' },
+      { to: '/vehicle-assignments', label: 'Vehicle Assign', icon: 'driver' },
       { to: '/service-history', label: 'Service History', icon: 'wrench' }
     ] 
     },
+  {
+    label: 'Transport',
+    roles: [ROLES.TRANSPORT_USER],
+    items: [{ to: '/vehicle-requests', label: 'Vehicle Requests', icon: 'bus' }],
+  },
   {
     label: 'People',
     roles: MANAGER_ROLES,
