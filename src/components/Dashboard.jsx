@@ -70,7 +70,7 @@ export default function Dashboard() {
     return vehicles.filter((vehicle) => {
       const matchesStatus = filter === 'all' || vehicle.status === filter
       const matchesQuery = !query || [
-        vehicle.registrationNumber, vehicle.make, vehicle.model, vehicle.type, vehicle.assignedDriver,
+        vehicle.registrationNumber, vehicle.make, vehicle.model, vehicle.type,
       ].some((value) => value?.toLowerCase().includes(query))
       return matchesStatus && matchesQuery
     })
@@ -227,16 +227,15 @@ export default function Dashboard() {
                     <th className="px-6 py-3.5">Vehicle</th>
                     <th className="px-4 py-3.5">Type</th>
                     <th className="px-4 py-3.5">Capacity</th>
-                    <th className="px-4 py-3.5">Driver</th>
                     <th className="px-4 py-3.5">Status</th>
                     {canManageVehicles && <th className="px-5 py-3.5"><span className="sr-only">Actions</span></th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
-                    <tr><td colSpan={canManageVehicles ? 6 : 5} className="px-6 py-16 text-center text-sm text-slate-500">Loading vehicles…</td></tr>
+                    <tr><td colSpan={canManageVehicles ? 5 : 4} className="px-6 py-16 text-center text-sm text-slate-500">Loading vehicles…</td></tr>
                   ) : filteredVehicles.length === 0 ? (
-                    <tr><td colSpan={canManageVehicles ? 6 : 5} className="px-6 py-16 text-center">
+                    <tr><td colSpan={canManageVehicles ? 5 : 4} className="px-6 py-16 text-center">
                       <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-slate-100 text-slate-500"><Truck size={20} /></span>
                       <p className="mt-3 text-sm font-semibold text-slate-800">{vehicles.length ? 'No matching vehicles' : 'Your fleet is ready to get started'}</p>
                       <p className="mt-1 text-sm text-slate-500">{vehicles.length ? 'Try adjusting your search or status filter.' : canManageVehicles ? 'Add your first bus or car to start managing your fleet.' : 'No vehicles have been added yet.'}</p>
@@ -255,7 +254,6 @@ export default function Dashboard() {
                       </td>
                       <td className="px-4 py-4 text-sm capitalize text-slate-600">{vehicle.type}</td>
                       <td className="px-4 py-4 text-sm text-slate-600">{vehicle.capacity} seats</td>
-                      <td className="px-4 py-4 text-sm text-slate-600">{vehicle.assignedDriver || <span className="text-slate-400">Unassigned</span>}</td>
                       <td className="px-4 py-4"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize ring-1 ring-inset ${statusStyle[vehicle.status] || statusStyle.inactive}`}>{vehicle.status}</span></td>
                       {canManageVehicles && <td className="px-5 py-4 text-right">
                         <div className="inline-flex items-center gap-1">

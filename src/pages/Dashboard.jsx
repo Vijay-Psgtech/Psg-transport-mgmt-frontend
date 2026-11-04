@@ -68,8 +68,8 @@ function ManagerDashboard() {
       seats: VEHICLE_TYPES.map((t) => ({ name: t.label, value: num(v.seatsByType, t.value), color: TYPE_COLORS[t.value] })).filter((s) => s.value > 0),
       age: v.ageBuckets.map((b) => ({ name: b.label, value: b.count })),
       vehicleAssign: [
-        { name: 'With a driver', value: v.assigned, color: COLORS.green },
-        { name: 'No driver assigned', value: v.unassigned, color: COLORS.slate },
+        { name: 'With upcoming assignment', value: v.assigned, color: COLORS.green },
+        { name: 'No upcoming assignment', value: v.unassigned, color: COLORS.slate },
       ],
       docRows,
       licence: [
@@ -80,8 +80,8 @@ function ManagerDashboard() {
         ...(d.licence.unknown ? [{ name: 'No expiry recorded', value: d.licence.unknown, color: COLORS.slate }] : []),
       ],
       driverAssign: [
-        { name: 'On a vehicle', value: d.assigned, color: COLORS.asphalt },
-        { name: 'Available', value: d.available, color: COLORS.signal },
+        { name: 'With upcoming trips', value: d.assigned, color: COLORS.asphalt },
+        { name: 'No upcoming trip', value: d.available, color: COLORS.signal },
       ],
       classes: Object.entries(d.byClass).map(([k, value]) => ({
         name: k === 'unknown' ? 'Not recorded' : k, value, color: CLASS_COLORS[k] || COLORS.slate,
@@ -105,8 +105,8 @@ function ManagerDashboard() {
       <section className="mt-6 grid grid-cols-2 gap-3 @2xl:grid-cols-3 @6xl:grid-cols-6" aria-label="Key figures">
         <KpiCard label="Vehicles" value={v.total} hint={`${v.active} active`} icon="bus" to="/vehicles" />
         <KpiCard label="Seat capacity" value={v.activeSeats} hint="active vehicles" icon="seat" to="/vehicles" />
-        <KpiCard label="Active drivers" value={d.active} hint={`${d.available} available`} icon="driver" to="/drivers" />
-        <KpiCard label="Vehicles without a driver" value={v.unassigned} icon="link" to="/vehicles" alert={v.total > 0} />
+        <KpiCard label="Active drivers" value={d.active} hint={`${d.assigned} with upcoming trips`} icon="driver" to="/drivers" />
+        <KpiCard label="Vehicles without upcoming assignments" value={v.unassigned} icon="link" to="/vehicle-assignments" />
         <KpiCard label="Vehicle documents due" value={v.docsDue} hint="in the next 30 days" icon="doc" to="/vehicles" alert />
         <KpiCard label="Licences due" value={d.licenceDue} hint="in the next 30 days" icon="licence" to="/drivers" alert />
       </section>
@@ -119,7 +119,7 @@ function ManagerDashboard() {
           <ChartCard title="Vehicle status" subtitle="Ready, in the workshop or retired" empty={noVehicles} summary={summarise(charts.status)}>
             <DonutChart data={charts.status} centerLabel="vehicles" />
           </ChartCard>
-          <ChartCard title="Driver coverage" subtitle="Vehicles with and without an assigned driver" empty={noVehicles} summary={summarise(charts.vehicleAssign)}>
+          <ChartCard title="Vehicle schedule coverage" subtitle="Vehicles with and without an upcoming assignment" empty={noVehicles} summary={summarise(charts.vehicleAssign)}>
             <DonutChart data={charts.vehicleAssign} centerLabel="vehicles" />
           </ChartCard>
           <ChartCard title="Seats by vehicle type" subtitle="Active vehicles only" empty={!charts.seats.length} summary={summarise(charts.seats)}>
@@ -157,7 +157,7 @@ function ManagerDashboard() {
           <ChartCard title="Licence status" subtitle="Active drivers" empty={noDrivers} emptyText="Add drivers to see licence status." summary={summarise(charts.licence)}>
             <DonutChart data={charts.licence} centerLabel="drivers" />
           </ChartCard>
-          <ChartCard title="Driver availability" subtitle="On a vehicle or free to assign" empty={noDrivers} summary={summarise(charts.driverAssign)}>
+          <ChartCard title="Driver schedule coverage" subtitle="Drivers with and without an upcoming trip" empty={noDrivers} summary={summarise(charts.driverAssign)}>
             <DonutChart data={charts.driverAssign} centerLabel="drivers" />
           </ChartCard>
           <ChartCard title="Licence class" subtitle="Active drivers" empty={!charts.classes.length} summary={summarise(charts.classes)}>
