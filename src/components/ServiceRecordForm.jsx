@@ -4,13 +4,18 @@ import api from '../api/axios';
 import { getErrorMessage, toDateInput } from '../utils/helpers';
 
 const TYPES = [
-  ['routine', 'Routine service'],
+  ['preventive', 'Preventive maintenance'],
+  ['repair', 'Breakdown repair'],
+  ['adblue', 'AdBlue refill'],
   ['oil_change', 'Oil change'],
-  ['repair', 'Repair'],
-  ['inspection', 'Inspection'],
-  ['tyres', 'Tyres'],
+  ['tyre_retread', 'Tyre retread'],
+  ['fc', 'Painting (FC)'],
+  ['wheel_alignment', 'Wheel alignment'],
   ['battery', 'Battery'],
-  ['other', 'Other'],
+  ['air_greese', 'Air & grease'],
+  ['water_wash', 'Water wash'],
+  ['Body_work', 'Body Shop Painting'],
+
 ];
 const STATUSES = [
   ['completed', 'Completed'],
@@ -21,7 +26,7 @@ const STATUSES = [
 
 const blankForm = () => ({
   vehicle: '',
-  serviceType: 'routine',
+  serviceType: 'preventive',
   status: 'completed',
   serviceDate: toDateInput(new Date()),
   odometer: '',
