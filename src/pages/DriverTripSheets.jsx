@@ -3,17 +3,16 @@ import api from '../api/axios';
 import Badge from '../components/Badge';
 import Field, { inputCls } from '../components/Field';
 import Icon from '../components/dashboard/Icon';
+import TripSheetHistory from '../components/TripSheetHistory';
 import { formatDateTime, getErrorMessage } from '../utils/helpers';
 
 const EMPTY_FORM = { startOdometer: '', endOdometer: '', fuelConsumed: '', notes: '' };
-const numberFormat = new Intl.NumberFormat('en-IN');
 
-function TripCard({ trip, onSubmit, saving, formOpen, onToggle }) {
-  const [form, setForm] = useState(EMPTY_FORM);
+function TripCard({ trip, onSubmit, saving, formOpen, onToggle, refreshKey }) {
+  const [form, setForm] = useState({ ...EMPTY_FORM });
   const [error, setError] = useState('');
   const completed = trip.status === 'completed';
   const vehicle = trip.vehicle;
-
   const change = (name) => (event) => {
     setForm((current) => ({ ...current, [name]: event.target.value }));
   };
@@ -28,6 +27,7 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle }) {
         ...(form.fuelConsumed !== '' && { fuelConsumed: Number(form.fuelConsumed) }),
         notes: form.notes.trim(),
       });
+      setForm({ ...EMPTY_FORM });
     } catch (submitError) {
       setError(getErrorMessage(submitError));
     }
@@ -57,7 +57,7 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle }) {
             aria-expanded={formOpen}
             className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-signal px-4 py-2 text-sm font-semibold text-asphalt transition hover:bg-signal-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-asphalt focus-visible:ring-offset-2"
           >
-            {formOpen ? 'Close trip sheet' : 'Complete trip'}
+            {formOpen ? 'Close trip sheet' : 'Add daily trip'}
           </button>
         )}
       </div>
@@ -82,29 +82,13 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle }) {
         </div>
       </div>
 
-      {completed && trip.tripSheet ? (
-        <div className="border-t border-line bg-slate-50/70 px-4 py-4 sm:px-6">
-          <h3 className="text-sm font-semibold">Submitted trip sheet</h3>
-          <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-            <p><span className="text-slate-500">Start odometer:</span> <strong>{numberFormat.format(trip.tripSheet.startOdometer)} km</strong></p>
-            <p><span className="text-slate-500">End odometer:</span> <strong>{numberFormat.format(trip.tripSheet.endOdometer)} km</strong></p>
-            <p><span className="text-slate-500">Distance:</span> <strong>{numberFormat.format(trip.tripSheet.endOdometer - trip.tripSheet.startOdometer)} km</strong></p>
-            {trip.tripSheet.fuelConsumed !== undefined && <p><span className="text-slate-500">Fuel used:</span> <strong>{trip.tripSheet.fuelConsumed} L</strong></p>}
-            {trip.tripSheet.notes && <p className="sm:col-span-2 lg:col-span-4"><span className="text-slate-500">Notes:</span> {trip.tripSheet.notes}</p>}
-            <p className="text-xs text-slate-500 sm:col-span-2 lg:col-span-4">Submitted {formatDateTime(trip.tripSheet.submittedAt)}</p>
-          </div>
-        </div>
-      ) : completed ? (
-        <p className="border-t border-line bg-slate-50/70 px-4 py-3 text-sm text-slate-500 sm:px-6">
-          This assignment was completed without a trip sheet submission.
-        </p>
-      ) : null}
+      <TripSheetHistory assignmentId={trip._id} refreshKey={refreshKey} />
 
       {formOpen && (
         <form onSubmit={submit} className="border-t border-line bg-slate-50/70 px-4 py-5 sm:px-6">
           <div className="mb-4">
-            <h3 className="font-display text-lg font-bold">Trip sheet details</h3>
-            <p className="mt-1 text-sm text-slate-600">Enter the final readings to submit and complete this trip.</p>
+            <h3 className="font-display text-lg font-bold">Add a daily trip entry</h3>
+            <p className="mt-1 text-sm text-slate-600">Enter your odometer readings. The date and time are recorded automatically when you submit.</p>
           </div>
           {error && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -162,7 +146,7 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle }) {
               Cancel
             </button>
             <button type="submit" disabled={saving} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-asphalt px-5 py-2 text-sm font-semibold text-white hover:bg-asphalt-soft disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
-              {saving ? 'Submitting...' : <><Icon name="check" className="h-4 w-4" /> Submit trip sheet</>}
+              {saving ? 'Submitting...' : <><Icon name="check" className="h-4 w-4" /> Submit daily entry</>}
             </button>
           </div>
         </form>
@@ -209,9 +193,8 @@ export default function DriverTripSheets() {
     setSavingId(id);
     setNotice('');
     try {
-      await api.patch(`/vehicle-assignments/${id}/trip-sheet`, payload);
-      setOpenId('');
-      setNotice('Trip sheet submitted. This trip is now marked complete.');
+      await api.post(`/vehicle-assignments/${id}/trip-sheets`, payload);
+      setNotice('Daily trip entry submitted. You can add more entries while the assignment remains open.');
       setRefresh((value) => value + 1);
     } finally {
       setSavingId('');
@@ -231,7 +214,7 @@ export default function DriverTripSheets() {
             </div>
             <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">My trip sheets</h1>
             <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
-              Open an assigned trip, record your odometer and fuel details, then submit when you're done.
+              Add a time-stamped log for each trip you make during an assignment. The assignment remains open until the transport officer closes it.
             </p>
           </div>
           <div className="flex items-center gap-3 self-start rounded-xl border border-white/10 bg-white/5 px-4 py-3 sm:self-center">
@@ -291,6 +274,7 @@ export default function DriverTripSheets() {
                 }}
                 onSubmit={submit}
                 saving={savingId === trip._id}
+                refreshKey={refresh}
               />
             ))}
           </div>

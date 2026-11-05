@@ -3,6 +3,7 @@ import api from '../api/axios';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import VehicleAssignmentForm from '../components/VehicleAssignmentForm';
+import TripSheetHistory from '../components/TripSheetHistory';
 import { inputCls } from '../components/Field';
 import { formatDateTime, getErrorMessage } from '../utils/helpers';
 import { VEHICLE_TYPES, labelOf } from '../utils/constants';
@@ -14,8 +15,6 @@ const STATUS = {
   cancelled: { tone: 'slate', label: 'Cancelled' },
   completed: { tone: 'slate', label: 'Completed' },
 };
-const numberFormat = new Intl.NumberFormat('en-IN');
-
 export default function VehicleAssignments() {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
@@ -88,7 +87,7 @@ export default function VehicleAssignments() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold">Vehicle Assign</h1>
-          <p className="text-sm text-slate-600">Schedule vehicles and drivers by availability, or fulfil user requests.</p>
+          <p className="text-sm text-slate-600">Schedule vehicles and drivers, fulfil requests, and review submitted daily trip sheets.</p>
         </div>
         <button onClick={() => setForm({})} className="rounded-md bg-signal px-4 py-2 text-sm font-semibold text-asphalt hover:bg-signal-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-asphalt">
           Add availability assignment
@@ -155,37 +154,8 @@ export default function VehicleAssignments() {
                   </div>
                 )}
 
-                {item.status === 'completed' && item.tripSheet && (
-                  <section className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4" aria-label="Submitted trip sheet">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-semibold text-emerald-950">Driver trip sheet</h3>
-                        <p className="mt-0.5 text-xs text-emerald-800">
-                          Submitted {formatDateTime(item.tripSheet.submittedAt)}
-                        </p>
-                      </div>
-                      <Badge tone="green">Submitted</Badge>
-                    </div>
-                    <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                      <p><span className="text-slate-600">Start odometer:</span><br /><strong>{numberFormat.format(item.tripSheet.startOdometer)} km</strong></p>
-                      <p><span className="text-slate-600">End odometer:</span><br /><strong>{numberFormat.format(item.tripSheet.endOdometer)} km</strong></p>
-                      <p><span className="text-slate-600">Distance travelled:</span><br /><strong>{numberFormat.format(item.tripSheet.endOdometer - item.tripSheet.startOdometer)} km</strong></p>
-                      {item.tripSheet.fuelConsumed !== undefined && (
-                        <p><span className="text-slate-600">Fuel used:</span><br /><strong>{item.tripSheet.fuelConsumed} L</strong></p>
-                      )}
-                      {item.tripSheet.notes && (
-                        <p className="sm:col-span-2 lg:col-span-4">
-                          <span className="text-slate-600">Driver notes:</span><br />{item.tripSheet.notes}
-                        </p>
-                      )}
-                    </div>
-                  </section>
-                )}
-
-                {item.status === 'completed' && !item.tripSheet && (
-                  <p className="mt-3 rounded-lg border border-line bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                    This assignment was marked completed without a driver-submitted trip sheet.
-                  </p>
+                {item.driver && ['assigned', 'completed', 'cancelled'].includes(item.status) && (
+                  <TripSheetHistory assignmentId={item._id} refreshKey={refresh} />
                 )}
 
                 <div className="mt-3 flex flex-wrap justify-end gap-2 border-t border-line pt-3">
