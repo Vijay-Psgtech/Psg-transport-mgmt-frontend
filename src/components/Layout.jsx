@@ -7,6 +7,11 @@ import { MANAGER_ROLES, ROLES, ROLE_LABELS } from '../utils/constants';
 // Navigation is data: add a page by adding a row. Groups and items are hidden when the role is not allowed.
 const NAV = [
   { label: 'Overview', items: [{ to: '/', label: 'Dashboard', icon: 'grid', end: true }] },
+  {
+    label: 'Driver',
+    roles: [ROLES.DRIVER],
+    items: [{ to: '/trip-sheets', label: 'My Trip Sheets', icon: 'route' }],
+  },
   { label: 'Fleet', 
     roles: MANAGER_ROLES, 
     items: [

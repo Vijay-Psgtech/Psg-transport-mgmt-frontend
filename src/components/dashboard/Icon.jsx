@@ -1,5 +1,6 @@
 const PATHS = {
   bus: (<><rect x="4" y="3" width="16" height="14" rx="2" /><path d="M4 11h16M8 21v-4M16 21v-4" /><circle cx="8" cy="14" r=".7" /><circle cx="16" cy="14" r=".7" /></>),
+  route: (<><circle cx="6" cy="18" r="2.5" /><circle cx="18" cy="6" r="2.5" /><path d="M8.5 18H12a3 3 0 003-3V9a3 3 0 013-3" /></>),
   seat: (<><path d="M8 4v9a3 3 0 003 3h6" /><path d="M8 13H5.5a1.5 1.5 0 00-1.5 1.5V20M17 16v4" /></>),
   driver: (<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></>),
   link: (<><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 00-5.7 0l-3 3A4 4 0 0011 18.7l1-1" /></>),

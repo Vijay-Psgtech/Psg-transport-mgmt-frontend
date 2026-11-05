@@ -18,6 +18,7 @@ The backend must be running and an administrator account must already exist. See
 - **Vehicle form:** create and edit buses and cars, with fuel, FASTag, status, and notes fields. Driver allocation is managed separately from the vehicle master.
 - **Vehicle Assign (transport officers/admins):** create date/time-window assignments from currently available vehicles and licensed drivers, review user requests, and assign or reject them. Overlapping assignments are prevented.
 - **Vehicle Requests (transport users):** submit a purpose, route, passenger count, and date/time window; view the response and cancel a pending request.
+- **My Trip Sheets (drivers):** view assigned trips, enter start/end odometer readings with optional fuel and notes, and submit to complete the assignment.
 - **Role-aware actions:** admins and managers can add, edit, and remove vehicles; operators have read-only access.
 - **Automatic sign-out:** signed-in users are logged out after 15 minutes without pointer, keyboard, touch, or scroll activity.
 

@@ -14,6 +14,7 @@ const STATUS = {
   cancelled: { tone: 'slate', label: 'Cancelled' },
   completed: { tone: 'slate', label: 'Completed' },
 };
+const numberFormat = new Intl.NumberFormat('en-IN');
 
 export default function VehicleAssignments() {
   const [items, setItems] = useState([]);
@@ -146,12 +147,45 @@ export default function VehicleAssignments() {
                   </div>
                 )}
 
-                {item.status === 'assigned' && (
+                {['assigned', 'completed'].includes(item.status) && (
                   <div className="mt-3 grid gap-2 border-t border-line pt-3 text-sm sm:grid-cols-3">
                     <p><span className="text-slate-500">Vehicle:</span> {item.vehicle ? `${item.vehicle.regNo} · ${item.vehicle.make} ${item.vehicle.model}` : 'Vehicle removed'}</p>
                     <p><span className="text-slate-500">Driver:</span> {item.driver?.name || 'Driver removed'}</p>
                     <p><span className="text-slate-500">Assigned by:</span> {item.assignedBy?.name || '—'}</p>
                   </div>
+                )}
+
+                {item.status === 'completed' && item.tripSheet && (
+                  <section className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4" aria-label="Submitted trip sheet">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-semibold text-emerald-950">Driver trip sheet</h3>
+                        <p className="mt-0.5 text-xs text-emerald-800">
+                          Submitted {formatDateTime(item.tripSheet.submittedAt)}
+                        </p>
+                      </div>
+                      <Badge tone="green">Submitted</Badge>
+                    </div>
+                    <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                      <p><span className="text-slate-600">Start odometer:</span><br /><strong>{numberFormat.format(item.tripSheet.startOdometer)} km</strong></p>
+                      <p><span className="text-slate-600">End odometer:</span><br /><strong>{numberFormat.format(item.tripSheet.endOdometer)} km</strong></p>
+                      <p><span className="text-slate-600">Distance travelled:</span><br /><strong>{numberFormat.format(item.tripSheet.endOdometer - item.tripSheet.startOdometer)} km</strong></p>
+                      {item.tripSheet.fuelConsumed !== undefined && (
+                        <p><span className="text-slate-600">Fuel used:</span><br /><strong>{item.tripSheet.fuelConsumed} L</strong></p>
+                      )}
+                      {item.tripSheet.notes && (
+                        <p className="sm:col-span-2 lg:col-span-4">
+                          <span className="text-slate-600">Driver notes:</span><br />{item.tripSheet.notes}
+                        </p>
+                      )}
+                    </div>
+                  </section>
+                )}
+
+                {item.status === 'completed' && !item.tripSheet && (
+                  <p className="mt-3 rounded-lg border border-line bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    This assignment was marked completed without a driver-submitted trip sheet.
+                  </p>
                 )}
 
                 <div className="mt-3 flex flex-wrap justify-end gap-2 border-t border-line pt-3">
