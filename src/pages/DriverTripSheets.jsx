@@ -10,9 +10,11 @@ const EMPTY_FORM = { startOdometer: '', endOdometer: '', fuelConsumed: '', notes
 
 function TripCard({ trip, onSubmit, saving, formOpen, onToggle, refreshKey }) {
   const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [showOptional, setShowOptional] = useState(false);
   const [error, setError] = useState('');
   const completed = trip.status === 'completed';
   const vehicle = trip.vehicle;
+
   const change = (name) => (event) => {
     setForm((current) => ({ ...current, [name]: event.target.value }));
   };
@@ -28,6 +30,7 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle, refreshKey }) {
         notes: form.notes.trim(),
       });
       setForm({ ...EMPTY_FORM });
+      setShowOptional(false);
     } catch (submitError) {
       setError(getErrorMessage(submitError));
     }
@@ -35,122 +38,157 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle, refreshKey }) {
 
   return (
     <article className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-line px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-asphalt text-signal">
-            <Icon name="route" className="h-5 w-5" />
-          </span>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-display text-lg font-bold leading-tight">
-                {trip.pickupLocation || 'Trip'} <span className="text-slate-400">to</span> {trip.destination || 'Destination'}
-              </h2>
-              <Badge tone={completed ? 'slate' : 'green'}>{completed ? 'Completed' : 'Assigned'}</Badge>
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-asphalt text-signal">
+              <Icon name="bus" className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-display text-lg font-bold">
+                  {vehicle?.regNo || 'Assigned vehicle'}
+                </h2>
+                <Badge tone={completed ? 'slate' : 'green'}>{completed ? 'Assignment closed' : 'Active'}</Badge>
+              </div>
+              <p className="mt-0.5 text-sm text-slate-600">
+                {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Vehicle details unavailable'}
+              </p>
             </div>
-            <p className="mt-1 text-sm text-slate-500">{formatDateTime(trip.startAt)} – {formatDateTime(trip.endAt)}</p>
+          </div>
+          {!completed && (
+            <button
+              type="button"
+              onClick={onToggle}
+              aria-expanded={formOpen}
+              className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-signal px-4 py-2 text-sm font-bold text-asphalt hover:bg-signal-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-asphalt focus-visible:ring-offset-2 sm:w-auto"
+            >
+              <Icon name={formOpen ? 'close' : 'plus'} className="h-4 w-4" />
+              {formOpen ? 'Close form' : 'Update trip sheet'}
+            </button>
+          )}
+        </div>
+
+        <div className="mt-4 grid gap-3 rounded-xl bg-canvas/70 p-3 text-sm sm:grid-cols-3">
+          <div>
+            <p className="text-xs font-medium text-slate-500">Route</p>
+            <p className="mt-0.5 font-medium text-asphalt">
+              {trip.pickupLocation || 'Pickup'} <span className="text-slate-400">→</span> {trip.destination || 'Destination'}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-slate-500">Assignment period</p>
+            <p className="mt-0.5 font-medium text-asphalt">{formatDateTime(trip.startAt)}</p>
+            <p className="text-xs text-slate-500">Until {formatDateTime(trip.endAt)}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-slate-500">Trip purpose</p>
+            <p className="mt-0.5 font-medium text-asphalt">{trip.purpose || 'Scheduled trip'}</p>
+            {trip.passengerCount != null && <p className="text-xs text-slate-500">{trip.passengerCount} passengers</p>}
           </div>
         </div>
-        {!completed && (
-          <button
-            type="button"
-            onClick={onToggle}
-            aria-expanded={formOpen}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-signal px-4 py-2 text-sm font-semibold text-asphalt transition hover:bg-signal-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-asphalt focus-visible:ring-offset-2"
-          >
-            {formOpen ? 'Close trip sheet' : 'Add daily trip'}
-          </button>
+
+        {formOpen && (
+          <form onSubmit={submit} className="mt-4 rounded-xl border border-signal/50 bg-amber-50/40 p-4">
+            <div className="mb-3">
+              <h3 className="font-display font-bold">Quick trip update</h3>
+              <p className="mt-0.5 text-xs text-slate-600">Enter the vehicle readings. Submission date and time are saved automatically.</p>
+            </div>
+
+            {error && <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Starting km" required>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  max="99999999"
+                  step="1"
+                  inputMode="numeric"
+                  placeholder="e.g. 15010"
+                  value={form.startOdometer}
+                  onChange={change('startOdometer')}
+                  className={`${inputCls(false)} min-h-12 text-base`}
+                />
+              </Field>
+              <Field label="Ending km" required>
+                <input
+                  type="number"
+                  required
+                  min={form.startOdometer || 0}
+                  max="99999999"
+                  step="1"
+                  inputMode="numeric"
+                  placeholder="e.g. 15060"
+                  value={form.endOdometer}
+                  onChange={change('endOdometer')}
+                  className={`${inputCls(false)} min-h-12 text-base`}
+                />
+              </Field>
+            </div>
+
+            <button
+              type="button"
+              aria-expanded={showOptional}
+              onClick={() => setShowOptional((value) => !value)}
+              className="mt-3 min-h-10 rounded-md text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-asphalt"
+            >
+              {showOptional ? 'Hide optional details' : '+ Add fuel or a note (optional)'}
+            </button>
+
+            {showOptional && (
+              <div className="mt-2 grid gap-3 border-t border-line pt-3 sm:grid-cols-2">
+                <Field label="Fuel used (litres)" hint="Optional">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100000"
+                    step="0.1"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={form.fuelConsumed}
+                    onChange={change('fuelConsumed')}
+                    className={inputCls(false)}
+                  />
+                </Field>
+                <Field label="Note" hint="Optional">
+                  <input
+                    type="text"
+                    maxLength={1000}
+                    placeholder="Anything the officer should know?"
+                    value={form.notes}
+                    onChange={change('notes')}
+                    className={inputCls(false)}
+                  />
+                </Field>
+              </div>
+            )}
+
+            <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={onToggle}
+                className="min-h-11 rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-asphalt px-5 py-2 text-sm font-bold text-white hover:bg-asphalt-soft disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+              >
+                <Icon name="check" className="h-4 w-4" />
+                {saving ? 'Saving...' : 'Save trip sheet'}
+              </button>
+            </div>
+          </form>
         )}
       </div>
 
-      <div className="grid gap-4 px-4 py-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Vehicle</p>
-          <p className="mt-1 font-semibold">{vehicle?.regNo || 'Vehicle unavailable'}</p>
-          {vehicle && <p className="text-sm text-slate-500">{vehicle.make} {vehicle.model}</p>}
-        </div>
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Purpose</p>
-          <p className="mt-1 font-semibold">{trip.purpose || 'Scheduled trip'}</p>
-        </div>
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Passengers</p>
-          <p className="mt-1 font-semibold">{trip.passengerCount ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Assignment</p>
-          <p className="mt-1 font-semibold">{trip.type === 'request' ? 'Transport request' : 'Fleet assignment'}</p>
-        </div>
+      <div className="border-t border-line px-4 sm:px-5">
+        <TripSheetHistory assignmentId={trip._id} refreshKey={refreshKey} />
       </div>
-
-      <TripSheetHistory assignmentId={trip._id} refreshKey={refreshKey} />
-
-      {formOpen && (
-        <form onSubmit={submit} className="border-t border-line bg-slate-50/70 px-4 py-5 sm:px-6">
-          <div className="mb-4">
-            <h3 className="font-display text-lg font-bold">Add a daily trip entry</h3>
-            <p className="mt-1 text-sm text-slate-600">Enter your odometer readings. The date and time are recorded automatically when you submit.</p>
-          </div>
-          {error && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Field label="Start odometer (km)" required>
-              <input
-                type="number"
-                required
-                min="0"
-                max="99999999"
-                step="1"
-                inputMode="numeric"
-                value={form.startOdometer}
-                onChange={change('startOdometer')}
-                className={inputCls(false)}
-              />
-            </Field>
-            <Field label="End odometer (km)" required>
-              <input
-                type="number"
-                required
-                min={form.startOdometer || 0}
-                max="99999999"
-                step="1"
-                inputMode="numeric"
-                value={form.endOdometer}
-                onChange={change('endOdometer')}
-                className={inputCls(false)}
-              />
-            </Field>
-            <Field label="Fuel used (litres)" hint="Optional">
-              <input
-                type="number"
-                min="0"
-                max="100000"
-                step="0.1"
-                inputMode="decimal"
-                value={form.fuelConsumed}
-                onChange={change('fuelConsumed')}
-                className={inputCls(false)}
-              />
-            </Field>
-            <Field label="Trip notes" hint="Optional" className="sm:col-span-2 lg:col-span-1">
-              <textarea
-                rows={2}
-                maxLength={1000}
-                value={form.notes}
-                onChange={change('notes')}
-                placeholder="Delays, incidents, or other details"
-                className={inputCls(false)}
-              />
-            </Field>
-          </div>
-          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <button type="button" onClick={onToggle} className="min-h-11 rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold text-asphalt hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
-              Cancel
-            </button>
-            <button type="submit" disabled={saving} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-asphalt px-5 py-2 text-sm font-semibold text-white hover:bg-asphalt-soft disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
-              {saving ? 'Submitting...' : <><Icon name="check" className="h-4 w-4" /> Submit daily entry</>}
-            </button>
-          </div>
-        </form>
-      )}
     </article>
   );
 }
@@ -194,7 +232,7 @@ export default function DriverTripSheets() {
     setNotice('');
     try {
       await api.post(`/vehicle-assignments/${id}/trip-sheets`, payload);
-      setNotice('Daily trip entry submitted. You can add more entries while the assignment remains open.');
+      setNotice('Trip sheet saved. You can add another update whenever needed.');
       setRefresh((value) => value + 1);
     } finally {
       setSavingId('');
@@ -202,94 +240,77 @@ export default function DriverTripSheets() {
   };
 
   const assignedCount = trips.filter((trip) => trip.status === 'assigned').length;
+  const firstResult = pagination.total ? (page - 1) * 10 + 1 : 0;
+  const lastResult = Math.min(page * 10, pagination.total);
 
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <header className="relative overflow-hidden rounded-2xl bg-asphalt px-5 py-6 text-white sm:px-8 sm:py-8">
-        <div className="road-line-h pointer-events-none absolute inset-x-0 bottom-0 h-1 opacity-70" aria-hidden="true" />
-        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-signal">
-              <Icon name="route" className="h-4 w-4" /> DRIVER PORTAL
-            </div>
-            <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">My trip sheets</h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
-              Add a time-stamped log for each trip you make during an assignment. The assignment remains open until the transport officer closes it.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 self-start rounded-xl border border-white/10 bg-white/5 px-4 py-3 sm:self-center">
-            <span className="grid h-10 w-10 place-items-center rounded-lg bg-signal text-asphalt">
-              <Icon name="calendar" className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="text-2xl font-bold leading-none">{pagination.total}</p>
-              <p className="mt-1 text-xs text-slate-300">Assigned &amp; recent trips</p>
-            </div>
-          </div>
+      <header className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Driver portal</p>
+          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">My trips</h1>
+          <p className="mt-1 text-sm text-slate-600">Choose a trip and enter your vehicle readings.</p>
         </div>
-      </header>
-
-      <section className="mt-6" aria-labelledby="trips-heading">
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 id="trips-heading" className="font-display text-xl font-bold">Your assignments</h2>
-            <p className="text-sm text-slate-500">
-              {assignedCount} trip{assignedCount === 1 ? '' : 's'} ready to update on this page
-            </p>
-          </div>
+        <div className="flex items-center gap-3">
+          <span className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
+            {assignedCount} active on this page
+          </span>
           <button
             type="button"
             onClick={() => setRefresh((value) => value + 1)}
             disabled={loading}
-            className="min-h-10 rounded-lg border border-line bg-white px-3 py-2 text-sm font-medium hover:bg-canvas disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-semibold hover:bg-canvas disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
           >
-            Refresh trips
+            <Icon name="refresh" className="h-4 w-4" />
+            Refresh
           </button>
         </div>
+      </header>
 
-        {notice && <p role="status" className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</p>}
-        {error ? (
-          <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
-            <p>{error}</p>
-            <button onClick={() => setRefresh((value) => value + 1)} className="mt-2 font-semibold underline">Try again</button>
-          </div>
-        ) : loading && trips.length === 0 ? (
-          <p role="status" className="rounded-xl border border-line bg-white p-6 text-sm text-slate-600">Loading your assignments...</p>
-        ) : trips.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-canvas text-slate-500"><Icon name="route" className="h-6 w-6" /></span>
-            <h3 className="mt-4 font-display text-lg font-bold">No trips assigned yet</h3>
-            <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500">When a transport officer assigns you a vehicle, your trip details will appear here.</p>
-          </div>
-        ) : (
-          <div className={`space-y-4 ${loading ? 'opacity-60' : ''}`} aria-busy={loading}>
-            {trips.map((trip) => (
-              <TripCard
-                key={trip._id}
-                trip={trip}
-                formOpen={openId === trip._id}
-                onToggle={() => {
-                  setOpenId((current) => current === trip._id ? '' : trip._id);
-                  setNotice('');
-                }}
-                onSubmit={submit}
-                saving={savingId === trip._id}
-                refreshKey={refresh}
-              />
-            ))}
-          </div>
-        )}
+      {notice && <p role="status" className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</p>}
 
-        {pagination.pages > 1 && (
-          <div className="mt-5 flex items-center justify-between rounded-xl border border-line bg-white px-4 py-3">
-            <p className="text-sm text-slate-600">Page {pagination.page} of {pagination.pages}</p>
-            <div className="flex gap-2">
-              <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page <= 1 || loading} className="min-h-10 rounded-lg border border-line px-3 text-sm font-medium disabled:opacity-50">Previous</button>
-              <button type="button" onClick={() => setPage((value) => Math.min(pagination.pages, value + 1))} disabled={page >= pagination.pages || loading} className="min-h-10 rounded-lg border border-line px-3 text-sm font-medium disabled:opacity-50">Next</button>
-            </div>
+      {error ? (
+        <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
+          {error}
+          <button type="button" onClick={() => setRefresh((value) => value + 1)} className="ml-2 font-semibold underline">Try again</button>
+        </div>
+      ) : loading && trips.length === 0 ? (
+        <p role="status" className="mt-4 rounded-xl border border-line bg-white p-6 text-sm text-slate-600">Loading your trips...</p>
+      ) : trips.length === 0 ? (
+        <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center">
+          <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-canvas text-slate-500"><Icon name="bus" className="h-5 w-5" /></span>
+          <h2 className="mt-3 font-display text-lg font-bold">No trips assigned</h2>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">Your transport officer's assignments will appear here.</p>
+        </div>
+      ) : (
+        <div className={`mt-4 space-y-3 ${loading ? 'opacity-60' : ''}`} aria-busy={loading}>
+          {trips.map((trip) => (
+            <TripCard
+              key={trip._id}
+              trip={trip}
+              formOpen={openId === trip._id}
+              onToggle={() => {
+                setOpenId((current) => current === trip._id ? '' : trip._id);
+                setNotice('');
+              }}
+              onSubmit={submit}
+              saving={savingId === trip._id}
+              refreshKey={refresh}
+            />
+          ))}
+        </div>
+      )}
+
+      {pagination.pages > 1 && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-white px-4 py-3 text-sm">
+          <p className="text-slate-600">Showing {firstResult}–{lastResult} of {pagination.total}</p>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page <= 1 || loading} className="min-h-10 rounded-lg border border-line px-3 font-medium disabled:opacity-50">Previous</button>
+            <span className="flex items-center px-2 text-slate-600">Page {pagination.page} of {pagination.pages}</span>
+            <button type="button" onClick={() => setPage((value) => Math.min(pagination.pages, value + 1))} disabled={page >= pagination.pages || loading} className="min-h-10 rounded-lg border border-line px-3 font-medium disabled:opacity-50">Next</button>
           </div>
-        )}
-      </section>
+        </div>
+      )}
     </div>
   );
 }
