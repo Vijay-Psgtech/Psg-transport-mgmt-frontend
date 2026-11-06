@@ -41,16 +41,14 @@ function AssignmentActions({ item, workingId, onUpdate, onAssign }) {
       )}
       {item.status === 'assigned' && (
         <>
-          {new Date(item.endAt) <= new Date() && (
-            <button
-              type="button"
-              onClick={() => onUpdate(item, 'completed')}
-              disabled={workingId === item._id}
-              className="min-h-9 rounded-lg border border-line px-3 py-1.5 text-sm font-medium hover:bg-canvas disabled:opacity-50"
-            >
-              Close assignment
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => onUpdate(item, 'completed')}
+            disabled={workingId === item._id}
+            className="min-h-9 rounded-lg border border-line px-3 py-1.5 text-sm font-medium hover:bg-canvas disabled:opacity-50"
+          >
+            Close assignment
+          </button>
           <button
             type="button"
             onClick={() => onUpdate(item, 'cancelled')}
@@ -215,7 +213,7 @@ export default function VehicleAssignments() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-asphalt">Fleet operations</p>
           <h1 className="mt-1 font-display text-2xl font-bold sm:text-3xl text-asphalt">Vehicle Assignments</h1>
-          <p className="mt-1 max-w-2xl text-sm text-slate-500">Review requests, manage schedules, and follow driver trip sheets.</p>
+          <p className="mt-1 max-w-2xl text-sm text-slate-500">Assign available vehicles, approve requests, and follow driver trip sheets.</p>
         </div>
         <button
           type="button"
@@ -275,7 +273,7 @@ export default function VehicleAssignments() {
             {loading ? 'Updating results...' : <><strong className="text-asphalt">{pagination.total}</strong> matching records</>}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-slate-400">Date range filters assignment start date</span>
+            <span className="text-xs text-slate-400">Filters request date or assignment creation date</span>
             <button type="button" onClick={resetFilters} className="min-h-9 rounded-lg px-3 text-sm font-semibold text-slate-600 hover:bg-canvas hover:text-asphalt">
               Clear filters
             </button>
@@ -316,8 +314,12 @@ export default function VehicleAssignments() {
                         <VehicleDriverSummary item={item} />
                         <div className="text-sm">
                           <p className="text-xs uppercase tracking-wide text-slate-400">Schedule</p>
-                          <p className="mt-1 font-medium">{formatDateTime(item.startAt)}</p>
-                          <p className="mt-1 text-xs text-slate-500">Until {formatDateTime(item.endAt)}</p>
+                          {item.startAt ? (
+                            <>
+                              <p className="mt-1 font-medium">{formatDateTime(item.startAt)}</p>
+                              <p className="mt-1 text-xs text-slate-500">Until {formatDateTime(item.endAt)}</p>
+                            </>
+                          ) : <p className="mt-1 font-medium">Reserved until closed</p>}
                         </div>
                       </div>
                       {item.driver && ['assigned', 'completed', 'cancelled'].includes(item.status) && (
@@ -352,8 +354,12 @@ export default function VehicleAssignments() {
                             <td className="max-w-[280px] px-4 py-4"><RouteSummary item={item} /></td>
                             <td className="px-4 py-4"><VehicleDriverSummary item={item} /></td>
                             <td className="whitespace-nowrap px-4 py-4">
-                              <p className="font-medium">{formatDateTime(item.startAt)}</p>
-                              <p className="mt-1 text-xs text-slate-500">Until {formatDateTime(item.endAt)}</p>
+                              {item.startAt ? (
+                                <>
+                                  <p className="font-medium">{formatDateTime(item.startAt)}</p>
+                                  <p className="mt-1 text-xs text-slate-500">Until {formatDateTime(item.endAt)}</p>
+                                </>
+                              ) : <p className="font-medium">Reserved until closed</p>}
                             </td>
                             <td className="px-4 py-4"><Badge tone={status.tone}>{status.label}</Badge></td>
                             <td className="min-w-[155px] px-4 py-4">

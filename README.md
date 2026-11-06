@@ -15,8 +15,8 @@ The backend must be running and an administrator account must already exist. See
 
 - **Sign in:** work-email/password form; accounts are provisioned by an administrator.
 - **Fleet overview:** vehicle totals, status counts, search, and status filtering.
-- **Vehicle form:** create and edit buses and cars, with fuel, FASTag, status, and notes fields. Driver allocation is managed separately from the vehicle master.
-- **Vehicle Assign (transport officers/admins):** create date/time-window assignments from currently available vehicles and licensed drivers, review user requests, and assign or reject them. Overlapping assignments are prevented.
+- **Vehicle form:** create and edit buses and cars, with fuel, FASTag, status, and notes.
+- **Vehicle Assign (transport officers/admins):** create assignments without start/end-time fields, review user requests with their requested windows, and approve or reject them after checking vehicle and driver availability. Active assignments reserve the vehicle and driver until closed.
 - **Vehicle Requests (transport users):** submit a purpose, route, passenger count, and date/time window; view the response and cancel a pending request.
 - **My Trip Sheets (drivers):** view assigned trips and add multiple time-stamped daily trip entries with start/end odometer readings and optional fuel and notes. Entries do not close the assignment; a transport officer closes it when the overall trip is finished.
 - **Role-aware actions:** admins and managers can add, edit, and remove vehicles; operators have read-only access.

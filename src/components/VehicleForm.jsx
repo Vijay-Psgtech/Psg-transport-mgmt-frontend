@@ -140,7 +140,6 @@ export default function VehicleForm({ vehicle, onSubmit, onCancel }) {
   const [errors, setErrors] = useState({});
   const [serverErrors, setServerErrors] = useState([]);
   const [saving, setSaving] = useState(false);
-
   const set = (name) => (e) => {
     setForm((f) => ({ ...f, [name]: e.target.value }));
     if (errors[name]) setErrors((er) => ({ ...er, [name]: undefined }));
