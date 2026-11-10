@@ -6,6 +6,7 @@ import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Vehicles from './pages/Vehicles';
 import VehicleAssignments from './pages/VehicleAssignments';
+import AssignmentTripSheets from './pages/AssignmentTripSheets';
 import DriverTripSheets from './pages/DriverTripSheets';
 import VehicleRequests from './pages/VehicleRequests';
 import ServiceHistory from './pages/ServiceHistory';
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="profile" element={<Profile />} />
         <Route path="vehicles" element={<ProtectedRoute roles={MANAGER_ROLES}><Vehicles /></ProtectedRoute>} />
         <Route path="vehicle-assignments" element={<ProtectedRoute roles={MANAGER_ROLES}><VehicleAssignments /></ProtectedRoute>} />
+        <Route path="vehicle-assignments/:id/trip-sheets" element={<ProtectedRoute roles={[...MANAGER_ROLES, ROLES.DRIVER]}><AssignmentTripSheets /></ProtectedRoute>} />
         <Route path="vehicle-requests" element={<ProtectedRoute roles={[ROLES.TRANSPORT_USER]}><VehicleRequests /></ProtectedRoute>} />
         <Route path="service-history" element={<ProtectedRoute roles={MANAGER_ROLES}><ServiceHistory /></ProtectedRoute>} />
         <Route path="drivers" element={<ProtectedRoute roles={MANAGER_ROLES}><People driversOnly /></ProtectedRoute>} />

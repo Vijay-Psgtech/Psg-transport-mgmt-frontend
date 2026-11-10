@@ -323,7 +323,7 @@ export default function VehicleAssignments() {
                         </div>
                       </div>
                       {item.driver && ['assigned', 'completed', 'cancelled'].includes(item.status) && (
-                        <TripSheetHistory assignmentId={item._id} refreshKey={refresh} />
+                        <TripSheetHistory assignmentId={item._id} />
                       )}
                       <div className="mt-3 border-t border-line pt-3">
                         <AssignmentActions item={item} workingId={workingId} onUpdate={updateStatus} onAssign={(assignment) => setForm({ assignment })} />
@@ -364,7 +364,7 @@ export default function VehicleAssignments() {
                             <td className="px-4 py-4"><Badge tone={status.tone}>{status.label}</Badge></td>
                             <td className="min-w-[155px] px-4 py-4">
                               {item.driver && ['assigned', 'completed', 'cancelled'].includes(item.status)
-                                ? <TripSheetHistory assignmentId={item._id} refreshKey={refresh} />
+                                ? <TripSheetHistory assignmentId={item._id} />
                                 : <span className="text-slate-400">—</span>}
                             </td>
                             <td className="px-4 py-4 text-right">

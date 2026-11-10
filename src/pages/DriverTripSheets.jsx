@@ -8,7 +8,7 @@ import { formatDateTime, getErrorMessage } from '../utils/helpers';
 
 const EMPTY_FORM = { startOdometer: '', endOdometer: '', fuelConsumed: '', notes: '' };
 
-function TripCard({ trip, onSubmit, saving, formOpen, onToggle, refreshKey }) {
+function TripCard({ trip, onSubmit, saving, formOpen, onToggle }) {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [showOptional, setShowOptional] = useState(false);
   const [error, setError] = useState('');
@@ -187,7 +187,7 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle, refreshKey }) {
       </div>
 
       <div className="border-t border-line px-4 sm:px-5">
-        <TripSheetHistory assignmentId={trip._id} refreshKey={refreshKey} />
+        <TripSheetHistory assignmentId={trip._id} />
       </div>
     </article>
   );
@@ -295,7 +295,6 @@ export default function DriverTripSheets() {
               }}
               onSubmit={submit}
               saving={savingId === trip._id}
-              refreshKey={refresh}
             />
           ))}
         </div>
