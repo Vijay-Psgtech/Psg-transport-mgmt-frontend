@@ -227,13 +227,14 @@ export default function ServiceHistory() {
   }, [modal]);
 
   const downloadInvoice = useCallback(async (record) => {
+    console.log('Downloading invoice for record', record);
     setDownloadError('');
     try {
       const { data } = await api.get(`/service-history/${record._id}/invoice`, { responseType: 'blob' });
       const url = URL.createObjectURL(data);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'invoice.pdf';
+      link.download = `${record.vehicle?.regNo || 'invoice'}_${record.serviceType || 'service'}_${new Date(record.serviceDate).toISOString().split('T')[0]}.pdf`;
       document.body.append(link);
       link.click();
       link.remove();
