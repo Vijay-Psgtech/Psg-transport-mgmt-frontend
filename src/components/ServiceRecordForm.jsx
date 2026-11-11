@@ -247,7 +247,7 @@ export default function ServiceRecordForm({ record, onSubmit, onCancel }) {
             )}
           </div>
         </Field>
-        <Field label="Service type" required>
+        <Field label="Maintenance type" required>
           <select value={form.serviceType} onChange={update('serviceType')} className={inputCls(false)}>
             {TYPES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
