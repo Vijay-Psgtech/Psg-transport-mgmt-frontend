@@ -55,7 +55,7 @@ function formFromRecord(record) {
   };
 }
 
-function validate(form) {
+function validate(form, invoiceFile) {
   const errors = {};
   if (!form.vehicle) errors.vehicle = 'Choose a vehicle.';
   if (!form.serviceDate) errors.serviceDate = 'Choose the service date.';
@@ -72,6 +72,10 @@ function validate(form) {
     errors.nextServiceOdometer = 'Enter a valid, non-negative odometer reading.';
   }
   if (form.notes.length > 1000) errors.notes = 'Use 1,000 characters or fewer.';
+  if (invoiceFile && (invoiceFile.type !== 'application/pdf' || !invoiceFile.name.toLowerCase().endsWith('.pdf'))) {
+    errors.invoiceFile = 'Choose a PDF file.';
+  }
+  if (invoiceFile && invoiceFile.size > 10 * 1024 * 1024) errors.invoiceFile = 'Invoice PDF must be 10 MB or smaller.';
   if (form.nextServiceDate && form.serviceDate && form.nextServiceDate < form.serviceDate) {
     errors.nextServiceDate = 'Next service date must be on or after this service date.';
   }
@@ -92,6 +96,7 @@ export default function ServiceRecordForm({ record, onSubmit, onCancel }) {
   const [vehicleListOpen, setVehicleListOpen] = useState(false);
   const [activeVehicleIndex, setActiveVehicleIndex] = useState(-1);
   const [errors, setErrors] = useState({});
+  const [invoiceFile, setInvoiceFile] = useState(null);
   const [serverError, setServerError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -159,7 +164,7 @@ export default function ServiceRecordForm({ record, onSubmit, onCancel }) {
 
   const submit = async (event) => {
     event.preventDefault();
-    const validationErrors = validate(form);
+    const validationErrors = validate(form, invoiceFile);
     setErrors(validationErrors);
     setServerError('');
     if (Object.keys(validationErrors).length) return;
@@ -175,6 +180,7 @@ export default function ServiceRecordForm({ record, onSubmit, onCancel }) {
         provider: form.provider.trim(),
         workDescription: form.workDescription.trim(),
         notes: form.notes.trim(),
+        invoiceFile,
       });
     } catch (error) {
       setServerError(getErrorMessage(error));
@@ -274,6 +280,22 @@ export default function ServiceRecordForm({ record, onSubmit, onCancel }) {
         </Field>
         <Field label="Notes" error={errors.notes} className="sm:col-span-2">
           <textarea rows={2} maxLength={1000} value={form.notes} onChange={update('notes')} placeholder="Optional notes, parts used, or invoice reference" className={inputCls(errors.notes)} />
+        </Field>
+        <Field
+          label="Invoice PDF"
+          error={errors.invoiceFile}
+          hint={record?.invoiceFilename ? 'An invoice is attached. Uploading a new PDF replaces it.' : 'Optional; PDF only, up to 10 MB.'}
+          className="sm:col-span-2"
+        >
+          <input
+            type="file"
+            accept=".pdf,application/pdf"
+            onChange={(event) => {
+              setInvoiceFile(event.target.files?.[0] || null);
+              setErrors((current) => ({ ...current, invoiceFile: undefined }));
+            }}
+            className={`${inputCls(errors.invoiceFile)} file:mr-3 file:rounded file:border-0 file:bg-canvas file:px-3 file:py-1.5 file:text-sm file:font-medium`}
+          />
         </Field>
       </div>
       <div className="flex flex-col-reverse gap-2 border-t border-line px-5 py-4 sm:flex-row sm:justify-end">

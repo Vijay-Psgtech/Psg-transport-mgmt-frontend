@@ -67,9 +67,12 @@ function VehicleLabel({ vehicle }) {
   );
 }
 
-function RecordActions({ record, onEdit, onDelete, canDelete }) {
+function RecordActions({ record, onEdit, onDelete, onDownload, canDelete }) {
   return (
     <div className="flex items-center gap-3">
+      {record.invoiceFilename && <button type="button" onClick={() => onDownload(record)} className="text-sm font-semibold text-blue-800 underline underline-offset-2 hover:text-blue-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
+        Invoice PDF
+      </button>}
       <button type="button" onClick={() => onEdit(record)} className="text-sm font-semibold text-blue-800 underline underline-offset-2 hover:text-blue-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal">
         Edit
       </button>
@@ -80,7 +83,7 @@ function RecordActions({ record, onEdit, onDelete, canDelete }) {
   );
 }
 
-function ServiceCard({ record, onEdit, onDelete, canDelete }) {
+function ServiceCard({ record, onEdit, onDelete, onDownload, canDelete }) {
   return (
     <article className="rounded-xl border border-line bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -114,7 +117,7 @@ function ServiceCard({ record, onEdit, onDelete, canDelete }) {
       </dl>
       {record.notes && <p className="mt-3 border-t border-line pt-3 text-xs text-slate-600">{record.notes}</p>}
       <div className="mt-4 flex justify-end border-t border-line pt-3">
-        <RecordActions record={record} onEdit={onEdit} onDelete={onDelete} canDelete={canDelete} />
+        <RecordActions record={record} onEdit={onEdit} onDelete={onDelete} onDownload={onDownload} canDelete={canDelete} />
       </div>
     </article>
   );
@@ -137,6 +140,7 @@ export default function ServiceHistory() {
   const [modal, setModal] = useState(null);
   const [toDelete, setToDelete] = useState(null);
   const [notice, setNotice] = useState('');
+  const [downloadError, setDownloadError] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => setFilters((current) => ({ ...current, search, page: 1 })), 300);
@@ -207,16 +211,37 @@ export default function ServiceHistory() {
   };
 
   const saveRecord = useCallback(async (payload) => {
+    const { invoiceFile, ...recordPayload } = payload;
+    const formData = new FormData();
+    formData.append('payload', JSON.stringify(recordPayload));
+    if (invoiceFile) formData.append('invoice', invoiceFile);
     if (modal?.record) {
-      await api.put(`/service-history/${modal.record._id}`, payload);
+      await api.put(`/service-history/${modal.record._id}`, formData);
       setNotice('Service record updated.');
     } else {
-      await api.post('/service-history', payload);
+      await api.post('/service-history', formData);
       setNotice('Service record added.');
     }
     setModal(null);
     setRefreshKey((key) => key + 1);
   }, [modal]);
+
+  const downloadInvoice = useCallback(async (record) => {
+    setDownloadError('');
+    try {
+      const { data } = await api.get(`/service-history/${record._id}/invoice`, { responseType: 'blob' });
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'invoice.pdf';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setDownloadError(getErrorMessage(err));
+    }
+  }, []);
 
   const deleteRecord = useCallback(async () => {
     await api.delete(`/service-history/${toDelete._id}`);
@@ -251,6 +276,7 @@ export default function ServiceHistory() {
       </header>
 
       {notice && <div role="status" className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
+      {downloadError && <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">Could not download invoice: {downloadError}</div>}
       {vehiclesError && (
         <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           Could not load vehicles for the service form: {vehiclesError}
@@ -350,7 +376,7 @@ export default function ServiceHistory() {
           <>
             <div className={loading ? 'opacity-60 transition-opacity' : ''}>
               <div className="space-y-3 p-3 sm:hidden">
-                {records.map((record) => <ServiceCard key={record._id} record={record} onEdit={(item) => setModal({ record: item })} onDelete={setToDelete} canDelete={canDelete} />)}
+                {records.map((record) => <ServiceCard key={record._id} record={record} onEdit={(item) => setModal({ record: item })} onDelete={setToDelete} onDownload={downloadInvoice} canDelete={canDelete} />)}
               </div>
               <div className="hidden overflow-x-auto sm:block">
                 <table className="min-w-[900px] w-full text-left text-sm">
@@ -384,7 +410,7 @@ export default function ServiceHistory() {
                         <td className="whitespace-nowrap px-4 py-4">{Number(record.odometer).toLocaleString('en-IN')} km</td>
                         <td className="whitespace-nowrap px-4 py-4 font-medium">{money(record.cost)}</td>
                         <td className="px-4 py-4"><StatusBadge status={record.status} /></td>
-                        <td className="px-4 py-4"><RecordActions record={record} onEdit={(item) => setModal({ record: item })} onDelete={setToDelete} canDelete={canDelete} /></td>
+                        <td className="px-4 py-4"><RecordActions record={record} onEdit={(item) => setModal({ record: item })} onDelete={setToDelete} onDownload={downloadInvoice} canDelete={canDelete} /></td>
                       </tr>
                     ))}
                   </tbody>
