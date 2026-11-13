@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Icon from './dashboard/Icon';
+import AdvanceNotification from './AdvanceNotification';
 import { MANAGER_ROLES, ROLES, ROLE_LABELS } from '../utils/constants';
 
 // Navigation is data: add a page by adding a row. Groups and items are hidden when the role is not allowed.
@@ -10,7 +11,10 @@ const NAV = [
   {
     label: 'Driver',
     roles: [ROLES.DRIVER],
-    items: [{ to: '/trip-sheets', label: 'My Trip Sheets', icon: 'route' }],
+    items: [
+      { to: '/trip-sheets', label: 'My Trip Sheets', icon: 'route' },
+      { to: '/trip-advances', label: 'Trip Advances', icon: 'wallet' },
+    ],
   },
   { label: 'Fleet', 
     roles: MANAGER_ROLES, 
@@ -24,6 +28,11 @@ const NAV = [
     label: 'Transport',
     roles: [ROLES.TRANSPORT_USER],
     items: [{ to: '/vehicle-requests', label: 'Vehicle Requests', icon: 'bus' }],
+  },
+  {
+    label: 'Approvals',
+    roles: [ROLES.TRANSPORT_OFFICER],
+    items: [{ to: '/trip-advance-approvals', label: 'Advance Requests', icon: 'wallet' }],
   },
   {
     label: 'People',
@@ -263,6 +272,7 @@ export default function Layout() {
 
       <main id="main" tabIndex={-1} className="px-4 py-5 focus:outline-none sm:px-6 lg:px-8 lg:py-8">
         <div className="mx-auto max-w-7xl">
+          <AdvanceNotification />
           <Outlet />
         </div>
       </main>

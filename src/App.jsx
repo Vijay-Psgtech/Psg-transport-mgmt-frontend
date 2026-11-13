@@ -8,6 +8,8 @@ import Vehicles from './pages/Vehicles';
 import VehicleAssignments from './pages/VehicleAssignments';
 import AssignmentTripSheets from './pages/AssignmentTripSheets';
 import DriverTripSheets from './pages/DriverTripSheets';
+import DriverTripAdvances from './pages/DriverTripAdvances';
+import TripAdvanceApprovals from './pages/TripAdvanceApprovals';
 import VehicleRequests from './pages/VehicleRequests';
 import ServiceHistory from './pages/ServiceHistory';
 import People from './pages/People';
@@ -41,6 +43,8 @@ export default function App() {
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<HomeRoute />} />
         <Route path="trip-sheets" element={<ProtectedRoute roles={[ROLES.DRIVER]}><DriverTripSheets /></ProtectedRoute>} />
+        <Route path="trip-advances" element={<ProtectedRoute roles={[ROLES.DRIVER]}><DriverTripAdvances /></ProtectedRoute>} />
+        <Route path="trip-advance-approvals" element={<ProtectedRoute roles={[ROLES.TRANSPORT_OFFICER]}><TripAdvanceApprovals /></ProtectedRoute>} />
         <Route path="profile" element={<Profile />} />
         <Route path="vehicles" element={<ProtectedRoute roles={MANAGER_ROLES}><Vehicles /></ProtectedRoute>} />
         <Route path="vehicle-assignments" element={<ProtectedRoute roles={MANAGER_ROLES}><VehicleAssignments /></ProtectedRoute>} />

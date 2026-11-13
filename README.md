@@ -19,6 +19,8 @@ The backend must be running and an administrator account must already exist. See
 - **Vehicle Assign (transport officers/admins):** create assignments without start/end-time fields, review user requests with their requested windows, and approve or reject them after checking vehicle and driver availability. Active assignments reserve the vehicle and driver until closed.
 - **Vehicle Requests (transport users):** submit a purpose, route, passenger count, and date/time window; view the response and cancel a pending request.
 - **My Trip Sheets (drivers):** view assigned trips and add multiple time-stamped daily trip entries with start/end odometer readings and optional fuel and notes. Entries do not close the assignment; a transport officer closes it when the overall trip is finished.
+- **Trip Advances (drivers):** submit a long-trip advance request against the currently assigned vehicle, follow approval status, receive in-app approval updates while the page is open, and download the generated receipt PDF.
+- **Advance Requests (transport officers):** review pending requests, approve an amount up to the requested amount or reject with a reason. Approved requests receive an automatically numbered PDF receipt.
 - **Role-aware actions:** admins and managers can add, edit, and remove vehicles; operators have read-only access.
 - **Automatic sign-out:** signed-in users are logged out after 15 minutes without pointer, keyboard, touch, or scroll activity.
 
