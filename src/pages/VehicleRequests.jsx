@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import api from '../api/axios';
 import Badge from '../components/Badge';
 import Field, { inputCls } from '../components/Field';
+import Icon from '../components/dashboard/Icon';
 import { formatDateTime, getErrorMessage } from '../utils/helpers';
 import { VEHICLE_TYPES, labelOf } from '../utils/constants';
 
@@ -45,6 +46,7 @@ export default function VehicleRequests() {
   const [error, setError] = useState('');
   const [listError, setListError] = useState('');
   const [notice, setNotice] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
 
   const load = useCallback(async (signal) => {
     setLoading(true);
@@ -83,6 +85,7 @@ export default function VehicleRequests() {
       setForm(initialForm());
       setPage(1);
       setNotice('Your vehicle request has been submitted to the transport officer.');
+      setFormOpen(false);
       setRefresh((value) => value + 1);
     } catch (submitError) {
       setError(getErrorMessage(submitError));
@@ -107,106 +110,169 @@ export default function VehicleRequests() {
 
   return (
     <div className="min-w-0 w-full">
-      <h1 className="font-display text-3xl font-bold">Vehicle Requests</h1>
-      <p className="text-sm text-slate-600">Submit a transport request; the transport officer will assign an available vehicle and driver.</p>
+      <header className="rounded bg-asphalt px-5 py-6 text-white sm:px-7">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-signal">Transport portal</p>
+        <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="font-display text-2xl font-bold sm:text-3xl">Vehicle requests</h1>
+            <p className="mt-1 max-w-xl text-sm text-slate-300">Request transport and follow your assignment status. The transport officer will assign an available vehicle and driver.</p>
+          </div>
+          <span className="inline-flex w-fit items-center rounded-full bg-white/10 px-3 py-1.5 text-sm text-slate-100">
+            {pagination.total} {pagination.total === 1 ? 'request' : 'requests'}
+          </span>
+        </div>
+      </header>
 
       {notice && <div role="status" className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{notice}</div>}
       {error && <div role="alert" className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div>}
 
-      <form onSubmit={submit} className="mt-5 rounded-lg border border-line bg-white p-4 sm:p-5">
-        <h2 className="font-display text-lg font-bold">New request</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="Purpose" required>
-            <input required maxLength={160} value={form.purpose} onChange={change('purpose')} className={inputCls(false)} />
-          </Field>
-          <Field label="Preferred vehicle type">
-            <select value={form.preferredVehicleType} onChange={change('preferredVehicleType')} className={inputCls(false)}>
-              <option value="">No preference</option>
-              {VEHICLE_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
-            </select>
-          </Field>
-          <Field label="Passenger count" required>
-            <input required type="number" min="1" max="100" value={form.passengerCount} onChange={change('passengerCount')} className={inputCls(false)} />
-          </Field>
-          <Field label="Pickup location" required>
-            <input required maxLength={160} value={form.pickupLocation} onChange={change('pickupLocation')} className={inputCls(false)} />
-          </Field>
-          <Field label="Destination" required>
-            <input required maxLength={160} value={form.destination} onChange={change('destination')} className={inputCls(false)} />
-          </Field>
-          <Field label="Start date and time" required>
-            <input required type="datetime-local" min={toLocalInput(new Date())} value={form.startAt} onChange={change('startAt')} className={inputCls(false)} />
-          </Field>
-          <Field label="End date and time" required>
-            <input required type="datetime-local" min={form.startAt} value={form.endAt} onChange={change('endAt')} className={inputCls(false)} />
-          </Field>
-          <Field label="Additional notes" className="sm:col-span-2 lg:col-span-3">
-            <textarea rows={2} maxLength={500} value={form.notes} onChange={change('notes')} className={inputCls(false)} />
-          </Field>
-        </div>
-        <div className="mt-4 flex justify-end">
-          <button type="submit" disabled={saving} className="rounded-md bg-signal px-4 py-2 text-sm font-semibold text-asphalt hover:bg-signal-dark disabled:opacity-60">
-            {saving ? 'Submitting...' : 'Submit request'}
+      <section className="mt-5 overflow-hidden rounded-sm border border-line bg-white shadow-sm">
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Plan your journey</p>
+            <h2 className="mt-1 font-display text-lg font-bold">New vehicle request</h2>
+            <p className="mt-1 text-sm text-slate-500">Provide the trip details so the transport officer can arrange your vehicle.</p>
+          </div>
+          <button
+            type="button"
+            aria-expanded={formOpen}
+            aria-controls="vehicle-request-form"
+            onClick={() => setFormOpen((open) => !open)}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-asphalt px-4 py-2 text-sm font-semibold text-white hover:bg-asphalt-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2"
+          >
+            <Icon name={formOpen ? 'close' : 'plus'} className="h-4 w-4" />
+            {formOpen ? 'Close form' : 'Add request'}
           </button>
         </div>
-      </form>
+        <div id="vehicle-request-form" hidden={!formOpen} className="border-t border-line bg-slate-50/70 p-4 sm:p-6">
+          <form onSubmit={submit}>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Field label="Purpose" required>
+                <input required maxLength={160} value={form.purpose} onChange={change('purpose')} className={`${inputCls(false)} min-h-11`} />
+              </Field>
+              <Field label="Preferred vehicle type">
+                <select value={form.preferredVehicleType} onChange={change('preferredVehicleType')} className={`${inputCls(false)} min-h-11`}>
+                  <option value="">No preference</option>
+                  {VEHICLE_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Passenger count" required>
+                <input required type="number" min="1" max="100" value={form.passengerCount} onChange={change('passengerCount')} className={`${inputCls(false)} min-h-11`} />
+              </Field>
+              <Field label="Pickup location" required>
+                <input required maxLength={160} value={form.pickupLocation} onChange={change('pickupLocation')} className={`${inputCls(false)} min-h-11`} />
+              </Field>
+              <Field label="Destination" required>
+                <input required maxLength={160} value={form.destination} onChange={change('destination')} className={`${inputCls(false)} min-h-11`} />
+              </Field>
+              <Field label="Start date and time" required>
+                <input required type="datetime-local" min={toLocalInput(new Date())} value={form.startAt} onChange={change('startAt')} className={`${inputCls(false)} min-h-11`} />
+              </Field>
+              <Field label="End date and time" required>
+                <input required type="datetime-local" min={form.startAt} value={form.endAt} onChange={change('endAt')} className={`${inputCls(false)} min-h-11`} />
+              </Field>
+              <Field label="Additional notes" className="sm:col-span-2 lg:col-span-3">
+                <textarea rows={2} maxLength={500} value={form.notes} onChange={change('notes')} className={inputCls(false)} />
+              </Field>
+            </div>
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => setFormOpen(false)} className="min-h-11 rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold hover:bg-canvas">Cancel</button>
+              <button type="submit" disabled={saving} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-signal px-5 py-2 text-sm font-bold text-asphalt hover:bg-signal-dark disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-asphalt focus-visible:ring-offset-2">
+                {saving ? 'Submitting...' : 'Submit request'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
 
       <section className="mt-8" aria-labelledby="requests-heading">
-        <div className="flex items-end justify-between">
+        <div className="mb-3 flex items-end justify-between gap-3">
           <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Request status</p>
             <h2 id="requests-heading" className="font-display text-xl font-bold">My requests</h2>
-            <p className="text-sm text-slate-600">{pagination.total} request(s)</p>
           </div>
-          <button onClick={() => setRefresh((value) => value + 1)} className="rounded-md border border-line bg-white px-3 py-2 text-sm font-medium hover:bg-canvas">Refresh</button>
+          <button type="button" onClick={() => setRefresh((value) => value + 1)} className="min-h-10 rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2">Refresh</button>
         </div>
         {listError ? (
-          <p role="alert" className="mt-3 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">{listError}</p>
+          <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">{listError}</p>
         ) : loading && requests.length === 0 ? (
-          <p role="status" className="mt-3 rounded-md border border-line bg-white p-5 text-sm text-slate-600">Loading requests...</p>
+          <p role="status" className="rounded-md border border-line bg-white p-5 text-sm text-slate-600">Loading requests...</p>
         ) : requests.length === 0 ? (
-          <p className="mt-3 rounded-md border border-line bg-white p-8 text-center text-sm text-slate-600">You have not submitted any requests yet.</p>
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center">
+            <p className="font-semibold text-asphalt">No vehicle requests yet</p>
+            <p className="mt-1 text-sm text-slate-500">Your submitted requests and assignments will appear here.</p>
+          </div>
         ) : (
-          <div className={`mt-3 space-y-3 ${loading ? 'opacity-60' : ''}`}>
-            {requests.map((request) => {
-              const status = STATUS[request.status] || STATUS.pending;
-              return (
-                <article key={request._id} className="rounded-lg border border-line bg-white p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <p className="font-semibold">{request.purpose}</p>
-                      <p className="mt-1 text-sm text-slate-600">{formatDateTime(request.startAt)} – {formatDateTime(request.endAt)}</p>
-                    </div>
-                    <Badge tone={status.tone}>{status.label}</Badge>
-                  </div>
-                  <div className="mt-3 grid gap-2 border-t border-line pt-3 text-sm sm:grid-cols-2">
-                    <p>{request.pickupLocation} → {request.destination}</p>
-                    <p>{request.passengerCount} passenger(s)</p>
-                    {request.preferredVehicleType && <p>Preferred vehicle: {labelOf(VEHICLE_TYPES, request.preferredVehicleType)}</p>}
-                    {request.status === 'assigned' && (
-                      <>
-                        <p>Vehicle: {request.vehicle?.regNo || 'Vehicle removed'}</p>
-                        <p>Driver: {request.driver?.name || 'Driver removed'}</p>
-                      </>
-                    )}
-                  </div>
-                  {request.status === 'pending' && (
-                    <div className="mt-3 flex justify-end border-t border-line pt-3">
-                      <button onClick={() => cancel(request)} disabled={cancellingId === request._id} className="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50">
-                        {cancellingId === request._id ? 'Cancelling...' : 'Cancel request'}
-                      </button>
-                    </div>
-                  )}
-                </article>
-              );
-            })}
+          <div className={`overflow-hidden rounded-sm border border-line bg-white shadow-sm ${loading ? 'opacity-60' : ''}`}>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px] text-left text-sm">
+                <thead className="border-b border-line bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th scope="col" className="px-4 py-3 font-semibold">Request</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Journey</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Schedule</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Passengers / vehicle</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Assignment</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Status</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {requests.map((request) => {
+                    const status = STATUS[request.status] || STATUS.pending;
+                    return (
+                      <tr key={request._id} className="align-top even:bg-slate-50/60">
+                        <td className="px-4 py-4">
+                          <p className="font-semibold text-asphalt">{request.purpose}</p>
+                          {request.notes && <p className="mt-1 max-w-xs text-sm text-slate-600">{request.notes}</p>}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-700">
+                          <p>{request.pickupLocation}</p>
+                          <p className="mt-1 text-xs text-slate-500">to {request.destination}</p>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-700">
+                          <p>{formatDateTime(request.startAt)}</p>
+                          <p className="mt-1 text-xs text-slate-500">to {formatDateTime(request.endAt)}</p>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-700">
+                          <p>{request.passengerCount} passenger(s)</p>
+                          <p className="mt-1 text-xs text-slate-500">{request.preferredVehicleType ? labelOf(VEHICLE_TYPES, request.preferredVehicleType) : 'No preference'}</p>
+                        </td>
+                        <td className="px-4 py-4 text-sm text-slate-700">
+                          {request.status === 'assigned' ? (
+                            <>
+                              <p className="font-medium">{request.vehicle?.regNo || 'Vehicle removed'}</p>
+                              <p className="mt-1 text-xs text-slate-500">{request.driver?.name || 'Driver removed'}</p>
+                            </>
+                          ) : '—'}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4"><Badge tone={status.tone}>{status.label}</Badge></td>
+                        <td className="whitespace-nowrap px-4 py-4">
+                          {request.status === 'pending' ? (
+                            <button
+                              type="button"
+                              onClick={() => cancel(request)}
+                              disabled={cancellingId === request._id}
+                              className="min-h-9 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
+                            >
+                              {cancellingId === request._id ? 'Cancelling...' : 'Cancel request'}
+                            </button>
+                          ) : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
         {pagination.pages > 1 && (
-          <div className="mt-4 flex items-center justify-between text-sm">
+          <div className="mt-4 flex items-center justify-between gap-3 text-sm">
             <p className="text-slate-600">Page {pagination.page} of {pagination.pages}</p>
             <div className="flex gap-2">
-              <button disabled={page <= 1} onClick={() => setPage((value) => value - 1)} className="rounded-md border border-line bg-white px-3 py-1.5 font-medium disabled:opacity-40">Previous</button>
-              <button disabled={page >= pagination.pages} onClick={() => setPage((value) => value + 1)} className="rounded-md border border-line bg-white px-3 py-1.5 font-medium disabled:opacity-40">Next</button>
+              <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} className="min-h-10 rounded-lg border border-line bg-white px-3 py-1.5 font-medium hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+              <button type="button" disabled={page >= pagination.pages} onClick={() => setPage((value) => value + 1)} className="min-h-10 rounded-lg border border-line bg-white px-3 py-1.5 font-medium hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40">Next</button>
             </div>
           </div>
         )}
