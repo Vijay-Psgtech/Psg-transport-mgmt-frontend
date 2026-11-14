@@ -80,6 +80,18 @@ function RouteSummary({ item }) {
       )}
       {item.requestedBy?.name && <p className="mt-1 text-xs text-slate-500">Requested by {item.requestedBy.name}</p>}
       {item.passengerCount && <p className="mt-1 text-xs text-slate-500">{item.passengerCount} passengers</p>}
+      {item.feedback && (
+        <div className="mt-3 rounded-lg border border-line bg-slate-50 p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-slate-700">Trip feedback</span>
+            <Badge tone={item.feedback.experience === 'good' ? 'green' : 'red'}>
+              {item.feedback.experience === 'good' ? 'Good' : 'Bad'}
+            </Badge>
+          </div>
+          {item.feedback.remarks && <p className="mt-2 whitespace-normal text-sm text-slate-700">{item.feedback.remarks}</p>}
+          <p className="mt-2 text-xs text-slate-500">Submitted {formatDateTime(item.feedback.submittedAt)}</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,8 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useReports } from '../context/ReportContext';
+import api from '../api/axios';
+import Badge from '../components/Badge';
 import ChartCard, { summarise } from '../components/charts/ChartCard';
 import DonutChart from '../components/charts/DonutChart';
 import BarsChart from '../components/charts/BarsChart';
@@ -9,6 +11,7 @@ import { CLASS_COLORS, COLORS, FUEL_COLOR, STATUS_COLORS, TYPE_COLORS } from '..
 import KpiCard from '../components/dashboard/KpiCard';
 import AttentionList from '../components/dashboard/AttentionList';
 import Icon from '../components/dashboard/Icon';
+import { formatDateTime, getErrorMessage } from '../utils/helpers';
 import {
   DOCUMENT_SHORT, DOCUMENT_TYPES, FUEL_TYPES, MANAGER_ROLES, ROLES, ROLE_LABELS, VEHICLE_STATUSES, VEHICLE_TYPES, labelOf,
 } from '../utils/constants';
@@ -31,6 +34,68 @@ function Section({ title, description, children }) {
       </div>
       {children}
     </section>
+  );
+}
+
+function RecentTripFeedback() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const load = async () => {
+      try {
+        const { data } = await api.get('/vehicle-assignments', {
+          params: { type: 'request', status: 'completed', feedbackOnly: true, limit: 5 },
+          signal: controller.signal,
+        });
+        setItems(data.data);
+      } catch (loadError) {
+        if (loadError.name !== 'CanceledError') setError(getErrorMessage(loadError));
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+    load();
+    return () => controller.abort();
+  }, []);
+
+  return (
+    <Section title="Recent trip feedback" description="Feedback submitted by transport users on completed trips.">
+      {error ? (
+        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</p>
+      ) : loading ? (
+        <p role="status" className="rounded-xl border border-line bg-white p-5 text-sm text-slate-600">Loading trip feedback...</p>
+      ) : items.length ? (
+        <div className="grid gap-3 @2xl:grid-cols-2 @5xl:grid-cols-3">
+          {items.map((item) => (
+            <article key={item._id} className="rounded-xl border border-line bg-white p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="truncate font-semibold text-asphalt">{item.destination}</h3>
+                  <p className="mt-1 text-sm text-slate-600">{item.purpose}</p>
+                </div>
+                <Badge tone={item.feedback.experience === 'good' ? 'green' : 'red'}>
+                  {item.feedback.experience === 'good' ? 'Good' : 'Bad'}
+                </Badge>
+              </div>
+              <p className="mt-3 text-xs text-slate-500">
+                {item.requestedBy?.name || 'Transport user'} · {item.vehicle?.regNo || 'Vehicle unavailable'}
+              </p>
+              {item.feedback.remarks && <p className="mt-3 rounded-lg bg-canvas p-3 text-sm text-slate-700">{item.feedback.remarks}</p>}
+              <p className="mt-3 border-t border-line pt-3 text-xs text-slate-500">
+                Submitted {formatDateTime(item.feedback.submittedAt)}
+              </p>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">
+          No trip feedback has been submitted yet.
+        </p>
+      )}
+    </Section>
   );
 }
 
@@ -180,6 +245,7 @@ function ManagerDashboard() {
           )}
         </div>
       </Section>
+      <RecentTripFeedback />
     </>
   );
 }
