@@ -34,6 +34,54 @@ const initialForm = () => {
   };
 };
 
+function TripFeedbackForm({ request, onCancel, onSubmit, saving }) {
+  const [experience, setExperience] = useState('');
+  const [remarks, setRemarks] = useState('');
+
+  const submit = (event) => {
+    event.preventDefault();
+    onSubmit(request, { experience, remarks });
+  };
+
+  return (
+    <form onSubmit={submit} className="mt-2 min-w-[220px] rounded-lg border border-line bg-slate-50 p-3">
+      <label className="block text-xs font-semibold text-slate-700" htmlFor={`feedback-experience-${request._id}`}>
+        Trip experience
+      </label>
+      <select
+        id={`feedback-experience-${request._id}`}
+        required
+        value={experience}
+        onChange={(event) => setExperience(event.target.value)}
+        className={`${inputCls(false)} mt-1 min-h-10 bg-white`}
+      >
+        <option value="" disabled>Select experience</option>
+        <option value="good">Good</option>
+        <option value="bad">Bad</option>
+      </select>
+      <label className="mt-3 block text-xs font-semibold text-slate-700" htmlFor={`feedback-remarks-${request._id}`}>
+        Remarks <span className="font-normal text-slate-500">(optional)</span>
+      </label>
+      <textarea
+        id={`feedback-remarks-${request._id}`}
+        rows={2}
+        maxLength={1000}
+        value={remarks}
+        onChange={(event) => setRemarks(event.target.value)}
+        className={`${inputCls(false)} mt-1 bg-white`}
+      />
+      <div className="mt-3 flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className="min-h-9 rounded-lg border border-line bg-white px-3 text-xs font-semibold hover:bg-canvas">
+          Cancel
+        </button>
+        <button type="submit" disabled={saving} className="min-h-9 rounded-lg bg-asphalt px-3 text-xs font-semibold text-white hover:bg-asphalt-soft disabled:opacity-60">
+          {saving ? 'Submitting...' : 'Submit feedback'}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default function VehicleRequests() {
   const [form, setForm] = useState(initialForm);
   const [requests, setRequests] = useState([]);
@@ -47,6 +95,8 @@ export default function VehicleRequests() {
   const [listError, setListError] = useState('');
   const [notice, setNotice] = useState('');
   const [formOpen, setFormOpen] = useState(false);
+  const [feedbackOpenId, setFeedbackOpenId] = useState('');
+  const [feedbackSavingId, setFeedbackSavingId] = useState('');
 
   const load = useCallback(async (signal) => {
     setLoading(true);
@@ -105,6 +155,22 @@ export default function VehicleRequests() {
       setError(getErrorMessage(cancelError));
     } finally {
       setCancellingId('');
+    }
+  };
+
+  const submitFeedback = async (request, feedback) => {
+    setError('');
+    setNotice('');
+    setFeedbackSavingId(request._id);
+    try {
+      await api.post(`/vehicle-assignments/${request._id}/feedback`, feedback);
+      setFeedbackOpenId('');
+      setNotice('Your trip feedback has been submitted.');
+      setRefresh((value) => value + 1);
+    } catch (feedbackError) {
+      setError(getErrorMessage(feedbackError));
+    } finally {
+      setFeedbackSavingId('');
     }
   };
 
@@ -214,6 +280,7 @@ export default function VehicleRequests() {
                     <th scope="col" className="px-4 py-3 font-semibold">Passengers / vehicle</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Assignment</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Status</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Trip feedback</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Action</th>
                   </tr>
                 </thead>
@@ -247,6 +314,36 @@ export default function VehicleRequests() {
                           ) : '—'}
                         </td>
                         <td className="whitespace-nowrap px-4 py-4"><Badge tone={status.tone}>{status.label}</Badge></td>
+                        <td className="px-4 py-4">
+                          {request.status !== 'completed' ? '—' : request.feedback ? (
+                            <div className="min-w-[150px]">
+                              <Badge tone={request.feedback.experience === 'good' ? 'green' : 'red'}>
+                                {request.feedback.experience === 'good' ? 'Good' : 'Bad'}
+                              </Badge>
+                              {request.feedback.remarks && <p className="mt-2 max-w-xs whitespace-normal text-xs text-slate-600">{request.feedback.remarks}</p>}
+                              <p className="mt-1 whitespace-nowrap text-xs text-slate-400">Submitted {formatDateTime(request.feedback.submittedAt)}</p>
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                aria-expanded={feedbackOpenId === request._id}
+                                onClick={() => setFeedbackOpenId((current) => current === request._id ? '' : request._id)}
+                                className="min-h-9 whitespace-nowrap rounded-lg border border-asphalt px-3 py-1.5 text-xs font-semibold text-asphalt hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2"
+                              >
+                                {feedbackOpenId === request._id ? 'Close form' : 'Leave feedback'}
+                              </button>
+                              {feedbackOpenId === request._id && (
+                                <TripFeedbackForm
+                                  request={request}
+                                  onCancel={() => setFeedbackOpenId('')}
+                                  onSubmit={submitFeedback}
+                                  saving={feedbackSavingId === request._id}
+                                />
+                              )}
+                            </>
+                          )}
+                        </td>
                         <td className="whitespace-nowrap px-4 py-4">
                           {request.status === 'pending' ? (
                             <button
