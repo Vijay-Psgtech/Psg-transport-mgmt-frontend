@@ -71,42 +71,111 @@ function ReviewForm({ advance, onCancel, onSave, saving }) {
 }
 
 function AdvanceCard({ advance, reviewing, onReview, onCancelReview, onSave, saving }) {
-  const statusTone = { pending: 'amber', approved: 'green', rejected: 'red' }[advance.status] || 'slate';
+  const status = {
+    pending: { label: 'Pending review', tone: 'amber' },
+    approved: { label: 'Approved', tone: 'green' },
+    rejected: { label: 'Rejected', tone: 'red' },
+  }[advance.status] || { label: advance.status, tone: 'slate' };
   return (
-    <article className="rounded-2xl border border-line bg-white p-4 shadow-sm sm:p-5">
+    <article className="rounded-xl border border-line bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-display text-lg font-bold">{advance.destination}</h2>
-            <Badge tone={statusTone}>{advance.status}</Badge>
+            <Badge tone={status.tone}>{status.label}</Badge>
           </div>
           <p className="mt-1 text-sm text-slate-600">{advance.purpose}</p>
         </div>
         {advance.status === 'pending' && !reviewing && (
-          <button type="button" onClick={() => onReview(advance._id)} className="min-h-10 rounded-lg bg-signal px-4 py-2 text-sm font-bold text-asphalt hover:bg-signal-dark">Review request</button>
+          <button type="button" onClick={() => onReview(advance._id)} className="min-h-10 rounded-lg bg-signal px-4 py-2 text-sm font-bold text-asphalt hover:bg-signal-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-asphalt focus-visible:ring-offset-2">Review request</button>
         )}
       </div>
-      <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-4 text-sm sm:grid-cols-4">
+      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-4 text-sm sm:grid-cols-3">
         <div><dt className="text-xs text-slate-500">Driver</dt><dd className="mt-1 font-semibold">{advance.driver?.name || 'Unavailable'}</dd></div>
         <div><dt className="text-xs text-slate-500">Vehicle</dt><dd className="mt-1 font-semibold">{advance.vehicle?.regNo || 'Unavailable'}</dd></div>
-        <div><dt className="text-xs text-slate-500">Requested</dt><dd className="mt-1 font-semibold">{money(advance.requestedAmount)}</dd></div>
         <div><dt className="text-xs text-slate-500">Request date</dt><dd className="mt-1 font-medium">{formatDate(advance.createdAt)}</dd></div>
+        <div><dt className="text-xs text-slate-500">Requested amount</dt><dd className="mt-1 font-semibold">{money(advance.requestedAmount)}</dd></div>
         <div><dt className="text-xs text-slate-500">Departure</dt><dd className="mt-1 font-medium">{formatDate(advance.departureDate)}</dd></div>
         <div><dt className="text-xs text-slate-500">Return</dt><dd className="mt-1 font-medium">{formatDate(advance.returnDate)}</dd></div>
+        {advance.status === 'approved' && (
+          <div><dt className="text-xs text-slate-500">Approved amount</dt><dd className="mt-1 font-semibold text-emerald-800">{money(advance.approvedAmount)}</dd></div>
+        )}
       </dl>
       {advance.remarks && <p className="mt-3 rounded-lg bg-canvas px-3 py-2 text-sm text-slate-700"><span className="font-semibold">Driver remarks: </span>{advance.remarks}</p>}
+      {advance.officerRemarks && <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700"><span className="font-semibold">Officer remarks: </span>{advance.officerRemarks}</p>}
       {advance.status === 'approved' && (
-        <p className="mt-3 text-sm text-emerald-800">
-          Approved {money(advance.approvedAmount)} on {formatDate(advance.approvedDate)} · Receipt {advance.receiptNo}
+        <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          Approved on {formatDate(advance.approvedDate)} · Receipt {advance.receiptNo}
         </p>
       )}
       {advance.status === 'rejected' && (
-        <p className="mt-3 text-sm text-red-800">
+        <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
           Rejected on {formatDate(advance.decisionDate)} · Reason: {advance.rejectionReason}
         </p>
       )}
       {reviewing && <ReviewForm advance={advance} onCancel={onCancelReview} onSave={onSave} saving={saving} />}
     </article>
+  );
+}
+
+function AdvanceTableRow({ advance, reviewing, onReview, onCancelReview, onSave, saving }) {
+  const status = {
+    pending: { label: 'Pending review', tone: 'amber' },
+    approved: { label: 'Approved', tone: 'green' },
+    rejected: { label: 'Rejected', tone: 'red' },
+  }[advance.status] || { label: advance.status, tone: 'slate' };
+
+  return (
+    <>
+      <tr className="align-top even:bg-slate-50/60">
+        <td className="whitespace-nowrap px-4 py-4">
+          <p className="font-semibold text-asphalt">{advance.driver?.name || 'Unavailable'}</p>
+          <p className="mt-1 text-xs text-slate-500">Requested {formatDate(advance.createdAt)}</p>
+        </td>
+        <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-slate-700">{advance.vehicle?.regNo || 'Unavailable'}</td>
+        <td className="px-4 py-4">
+          <p className="font-semibold text-asphalt">{advance.destination}</p>
+          <p className="mt-1 max-w-xs text-sm text-slate-600">{advance.purpose}</p>
+          {advance.remarks && <p className="mt-2 max-w-xs text-xs text-slate-500"><span className="font-semibold">Driver note: </span>{advance.remarks}</p>}
+        </td>
+        <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-700">
+          <p>{formatDate(advance.departureDate)}</p>
+          <p className="mt-1 text-xs text-slate-500">to {formatDate(advance.returnDate)}</p>
+        </td>
+        <td className="whitespace-nowrap px-4 py-4 text-sm">
+          <p className="font-semibold text-asphalt">{money(advance.requestedAmount)}</p>
+          {advance.status === 'approved' && <p className="mt-1 text-xs font-medium text-emerald-800">Approved {money(advance.approvedAmount)}</p>}
+        </td>
+        <td className="px-4 py-4">
+          <Badge tone={status.tone}>{status.label}</Badge>
+          {advance.status === 'approved' && (
+            <p className="mt-2 text-xs text-emerald-800">
+              {formatDate(advance.approvedDate)} · Receipt {advance.receiptNo}
+            </p>
+          )}
+          {advance.status === 'rejected' && (
+            <p className="mt-2 max-w-xs text-xs text-red-800">
+              {formatDate(advance.decisionDate)} · {advance.rejectionReason}
+            </p>
+          )}
+          {advance.officerRemarks && <p className="mt-2 max-w-xs text-xs text-slate-600"><span className="font-semibold">Officer: </span>{advance.officerRemarks}</p>}
+        </td>
+        <td className="whitespace-nowrap px-4 py-4">
+          {advance.status === 'pending' && !reviewing ? (
+            <button type="button" onClick={() => onReview(advance._id)} className="min-h-10 rounded-lg bg-signal px-3 py-2 text-xs font-bold text-asphalt hover:bg-signal-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-asphalt focus-visible:ring-offset-2">
+              Review
+            </button>
+          ) : '—'}
+        </td>
+      </tr>
+      {reviewing && (
+        <tr>
+          <td colSpan={7} className="border-t border-line bg-slate-50/70 px-4 py-2">
+            <ReviewForm advance={advance} onCancel={onCancelReview} onSave={onSave} saving={saving} />
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
@@ -158,25 +227,27 @@ export default function TripAdvanceApprovals() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
-      <header className="rounded-2xl bg-asphalt px-5 py-6 text-white sm:px-7">
+    <div className="mx-auto w-full max-w-7xl">
+      <header className="rounded-sm bg-asphalt px-5 py-6 text-white sm:px-7">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-signal">Transport Officer</p>
         <h1 className="mt-2 font-display text-2xl font-bold sm:text-3xl">Trip advance approvals</h1>
         <p className="mt-1 max-w-xl text-sm text-slate-300">Review driver requests, record the decision, and issue a numbered PDF receipt on approval.</p>
       </header>
 
-      {notice && <p role="status" className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
-      {error && <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
+      {notice && <p role="status" className="mt-4 rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
+      {error && <p role="alert" className="mt-4 rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
 
       <section className="mt-5">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Requests</p>
-            <p className="mt-1 text-sm text-slate-600">{items.length} {filter || 'total'} requests shown</p>
+            <p className="mt-1 text-sm text-slate-600">
+              {items.length} {filter ? 'pending' : 'total'} {items.length === 1 ? 'request' : 'requests'} shown
+            </p>
           </div>
           <div className="flex flex-wrap gap-2" aria-label="Filter requests">
             {[['pending', 'Pending'], ['', 'All requests']].map(([value, label]) => (
-              <button key={label} type="button" onClick={() => { setFilter(value); setReviewId(''); }} aria-pressed={filter === value} className={`min-h-10 rounded-lg border px-4 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-signal ${filter === value ? 'border-asphalt bg-asphalt text-white' : 'border-line bg-white text-slate-700 hover:bg-canvas'}`}>
+              <button key={label} type="button" onClick={() => { setFilter(value); setReviewId(''); }} aria-pressed={filter === value} className={`min-h-10 rounded-sm border px-4 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-signal ${filter === value ? 'border-asphalt bg-asphalt text-white' : 'border-line bg-white text-slate-700 hover:bg-canvas'}`}>
                 {label}
               </button>
             ))}
@@ -184,23 +255,56 @@ export default function TripAdvanceApprovals() {
         </div>
 
         {loading && items.length === 0 ? (
-          <p role="status" className="rounded-xl border border-line bg-white p-5 text-sm text-slate-600">Loading advance requests...</p>
+          <p role="status" className="rounded-sm border border-line bg-white p-5 text-sm text-slate-600">Loading advance requests...</p>
         ) : items.length ? (
-          <div className="space-y-3">
-            {items.map((advance) => (
-              <AdvanceCard
-                key={advance._id}
-                advance={advance}
-                reviewing={reviewId === advance._id}
-                onReview={setReviewId}
-                onCancelReview={() => setReviewId('')}
-                onSave={saveDecision}
-                saving={saving}
-              />
-            ))}
+          <div className={loading ? 'opacity-60' : ''}>
+            <div className="space-y-3 lg:hidden">
+              {items.map((advance) => (
+                <AdvanceCard
+                  key={advance._id}
+                  advance={advance}
+                  reviewing={reviewId === advance._id}
+                  onReview={setReviewId}
+                  onCancelReview={() => setReviewId('')}
+                  onSave={saveDecision}
+                  saving={saving}
+                />
+              ))}
+            </div>
+            <div className="hidden overflow-hidden rounded-sm border border-line bg-white shadow-sm lg:block">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[1100px] text-left text-sm">
+                  <caption className="sr-only">Trip advance requests and review status</caption>
+                  <thead className="border-b border-line bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th scope="col" className="px-4 py-3 font-semibold">Driver / requested</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Vehicle</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Trip</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Trip dates</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Amount</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Decision</th>
+                      <th scope="col" className="px-4 py-3 font-semibold">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {items.map((advance) => (
+                      <AdvanceTableRow
+                        key={advance._id}
+                        advance={advance}
+                        reviewing={reviewId === advance._id}
+                        onReview={setReviewId}
+                        onCancelReview={() => setReviewId('')}
+                        onSave={saveDecision}
+                        saving={saving}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center">
+          <div className="rounded-sm border border-dashed border-slate-300 bg-white px-5 py-12 text-center">
             <Icon name="check" className="mx-auto h-9 w-9 text-slate-400" />
             <h2 className="mt-3 font-display text-lg font-bold">{filter ? 'All caught up' : 'No advance requests yet'}</h2>
             <p className="mt-1 text-sm text-slate-500">{filter ? 'There are no pending requests to review.' : 'Driver requests will appear here when submitted.'}</p>
