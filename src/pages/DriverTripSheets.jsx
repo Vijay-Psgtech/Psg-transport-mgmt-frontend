@@ -37,11 +37,11 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle }) {
   };
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+    <article className="overflow-hidden rounded-sm border border-line bg-white shadow-sm">
       <div className="p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-asphalt text-signal">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-sm bg-asphalt text-signal">
               <Icon name="bus" className="h-5 w-5" />
             </span>
             <div className="min-w-0">
@@ -61,7 +61,7 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle }) {
               type="button"
               onClick={onToggle}
               aria-expanded={formOpen}
-              className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-signal px-4 py-2 text-sm font-bold text-asphalt hover:bg-signal-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-asphalt focus-visible:ring-offset-2 sm:w-auto"
+              className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-sm bg-signal px-4 py-2 text-sm font-bold text-asphalt hover:bg-signal-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-asphalt focus-visible:ring-offset-2 sm:w-auto"
             >
               <Icon name={formOpen ? 'close' : 'plus'} className="h-4 w-4" />
               {formOpen ? 'Close form' : 'Update trip sheet'}
@@ -69,7 +69,7 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle }) {
           )}
         </div>
 
-        <div className="mt-4 grid gap-3 rounded-xl bg-canvas/70 p-3 text-sm sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 rounded-sm bg-canvas/70 p-3 text-sm sm:grid-cols-3">
           <div>
             <p className="text-xs font-medium text-slate-500">Route</p>
             <p className="mt-0.5 font-medium text-asphalt">
@@ -89,13 +89,13 @@ function TripCard({ trip, onSubmit, saving, formOpen, onToggle }) {
         </div>
 
         {formOpen && (
-          <form onSubmit={submit} className="mt-4 rounded-xl border border-signal/50 bg-amber-50/40 p-4">
+          <form onSubmit={submit} className="mt-4 rounded-sm border border-signal/50 bg-amber-50/40 p-4">
             <div className="mb-3">
               <h3 className="font-display font-bold">Quick trip update</h3>
               <p className="mt-0.5 text-xs text-slate-600">Enter the vehicle readings. Submission date and time are saved automatically.</p>
             </div>
 
-            {error && <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
+            {error && <p role="alert" className="mb-3 rounded-sm border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
 
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Starting km" required>

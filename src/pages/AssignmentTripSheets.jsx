@@ -64,15 +64,15 @@ export default function AssignmentTripSheets() {
     <main className="mx-auto w-full max-w-7xl">
       <Link
         to={backTo}
-        className="inline-flex min-h-10 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-slate-600 hover:bg-white hover:text-asphalt focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+        className="inline-flex min-h-10 items-center gap-2 rounded-sm px-2 text-sm font-semibold text-slate-600 hover:bg-white hover:text-asphalt focus:outline-none focus-visible:ring-2 focus-visible:ring-signal"
       >
         <span aria-hidden="true">←</span>
         Back to {user.role === ROLES.DRIVER ? 'my trips' : 'assignments'}
       </Link>
 
-      <header className="mt-4 flex flex-col gap-4 rounded-2xl border border-line bg-white p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-7">
+      <header className="mt-4 flex flex-col gap-4 rounded-sm border border-line bg-white p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-7">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-asphalt text-signal">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-sm bg-asphalt text-signal">
             <Icon name="route" className="h-6 w-6" />
           </span>
           <div className="min-w-0">
@@ -82,7 +82,7 @@ export default function AssignmentTripSheets() {
           </div>
         </div>
         <div className="flex items-center gap-2 self-start">
-          <span className="rounded-lg bg-canvas px-3 py-2 text-sm font-semibold text-asphalt">
+          <span className="rounded-sm bg-canvas px-3 py-2 text-sm font-semibold text-asphalt">
             {loading && !assignment ? 'Loading...' : `${pagination.total} ${pagination.total === 1 ? 'record' : 'records'}`}
           </span>
           {assignment && <Badge tone={statusTone}>{assignment.status}</Badge>}
@@ -90,7 +90,7 @@ export default function AssignmentTripSheets() {
       </header>
 
       {assignment && (
-        <section aria-label="Assignment details" className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section aria-label="Assignment details" className="mt-4 grid gap-3 grid-cols-2 sm:grid-cols-4">
           <SummaryItem
             label="Vehicle"
             value={assignment.vehicle?.regNo}
@@ -117,22 +117,22 @@ export default function AssignmentTripSheets() {
       )}
 
       {error ? (
-        <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
+        <div role="alert" className="mt-4 rounded-sm border border-red-200 bg-red-50 p-5 text-sm text-red-800">
           {error}
           <button type="button" onClick={() => setRetry((value) => value + 1)} className="ml-2 font-semibold underline">Try again</button>
         </div>
       ) : loading && entries.length === 0 ? (
-        <p role="status" className="mt-4 rounded-xl border border-line bg-white p-6 text-sm text-slate-600">Loading trip sheets...</p>
+        <p role="status" className="mt-4 rounded-sm border border-line bg-white p-6 text-sm text-slate-600">Loading trip sheets...</p>
       ) : entries.length === 0 ? (
-        <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-canvas text-slate-500">
+        <div className="mt-4 rounded-sm border border-dashed border-slate-300 bg-white px-5 py-12 text-center">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-sm bg-canvas text-slate-500">
             <Icon name="doc" className="h-6 w-6" />
           </span>
           <h2 className="mt-4 font-display text-lg font-bold text-asphalt">No trip sheets submitted</h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">Trip entries for this vehicle and driver will appear here once submitted.</p>
         </div>
       ) : (
-        <section className={`mt-4 overflow-hidden rounded-2xl border border-line bg-white shadow-sm ${loading ? 'opacity-60' : ''}`} aria-busy={loading}>
+        <section className={`mt-4 overflow-hidden rounded-sm border border-line bg-white shadow-sm ${loading ? 'opacity-60' : ''}`} aria-busy={loading}>
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-4 sm:px-5">
             <div>
               <h2 className="font-display text-lg font-bold text-asphalt">Daily trip entries</h2>
@@ -187,14 +187,14 @@ export default function AssignmentTripSheets() {
       )}
 
       {pagination.pages > 1 && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-white px-4 py-3 text-sm">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-line bg-white px-4 py-3 text-sm">
           <p className="text-slate-600">Showing {firstResult}–{lastResult} of {pagination.total}</p>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => setPage((value) => Math.max(1, value - 1))}
               disabled={page <= 1 || loading}
-              className="min-h-10 rounded-lg border border-line px-3 font-medium disabled:opacity-50"
+              className="min-h-10 rounded-sm border border-line px-3 font-medium disabled:opacity-50"
             >
               Previous
             </button>
@@ -203,7 +203,7 @@ export default function AssignmentTripSheets() {
               type="button"
               onClick={() => setPage((value) => Math.min(pagination.pages, value + 1))}
               disabled={page >= pagination.pages || loading}
-              className="min-h-10 rounded-lg border border-line px-3 font-medium disabled:opacity-50"
+              className="min-h-10 rounded-sm border border-line px-3 font-medium disabled:opacity-50"
             >
               Next
             </button>
