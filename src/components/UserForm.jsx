@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Field, { inputCls } from './Field';
 import PasswordField from './PasswordField';
+import api from '../api/axios';
 import {
   ROLE_OPTIONS, BLOOD_GROUPS, LICENSE_CLASSES, PHONE_REGEX, EMAIL_REGEX,
 } from '../utils/constants';
@@ -9,6 +10,7 @@ import { generatePassword, getErrorMessage, passwordIssue, toDateInput } from '.
 const EMPTY = {
   name: '', email: '', phone: '', idNumber: '', role: 'student', password: '',
   licenseNumber: '', licenseClass: 'HPMV', licenseExpiry: '', badgeNumber: '', bloodGroup: '',
+  licenseImage: null, licenseFile: null, removeLicenseImage: false,
   dateOfBirth: '', dateOfJoining: '', experienceYears: '', address: '',
   emergencyContactName: '', emergencyContactPhone: '',
 };
@@ -20,6 +22,7 @@ function toFormState(user, fixedRole) {
     ...EMPTY,
     name: user.name, email: user.email ?? '', phone: user.phone ?? '', idNumber: user.idNumber ?? '', role: user.role,
     licenseNumber: p.licenseNumber ?? '', licenseClass: p.licenseClass ?? 'HPMV', licenseExpiry: toDateInput(p.licenseExpiry),
+    licenseImage: p.licenseImage ?? null,
     badgeNumber: p.badgeNumber ?? '', bloodGroup: p.bloodGroup ?? '', dateOfBirth: toDateInput(p.dateOfBirth),
     dateOfJoining: toDateInput(p.dateOfJoining), experienceYears: p.experienceYears ?? '', address: p.address ?? '',
     emergencyContactName: p.emergencyContactName ?? '', emergencyContactPhone: p.emergencyContactPhone ?? '',
@@ -53,6 +56,7 @@ function toPayload(f, creating) {
       emergencyContactPhone: orNull(f.emergencyContactPhone),
     };
   }
+  if (f.role === 'driver' && f.removeLicenseImage) payload.removeLicenseImage = true;
   return payload;
 }
 
@@ -70,6 +74,11 @@ function validate(f, creating) {
     if (!f.licenseNumber.trim()) e.licenseNumber = 'Enter the licence number.';
     if (!f.licenseClass) e.licenseClass = 'Select the licence class.';
     if (!f.licenseExpiry) e.licenseExpiry = 'Enter the licence expiry date.';
+    if (f.licenseFile && !['image/jpeg', 'image/png', 'image/webp'].includes(f.licenseFile.type)) {
+      e.licenseImage = 'Choose a JPG, PNG, or WebP image.';
+    } else if (f.licenseFile?.size > 5 * 1024 * 1024) {
+      e.licenseImage = 'The licence image must be 5 MB or smaller.';
+    }
     if (f.experienceYears !== '' && (Number(f.experienceYears) < 0 || Number(f.experienceYears) > 60)) e.experienceYears = 'Enter 0 to 60 years.';
     if (f.emergencyContactPhone && !PHONE_REGEX.test(f.emergencyContactPhone)) e.emergencyContactPhone = 'Enter a valid phone number.';
   }
@@ -78,6 +87,48 @@ function validate(f, creating) {
 
 // Server field errors use dotted paths such as "driverProfile.licenseNumber"
 const fieldKey = (path) => path.replace('driverProfile.', '');
+
+function LicenseImagePreview({ image, file, userId }) {
+  const [src, setSrc] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl;
+    setSrc(null);
+    setError('');
+
+    async function loadImage() {
+      if (file) {
+        objectUrl = URL.createObjectURL(file);
+        if (active) setSrc(objectUrl);
+        return;
+      }
+      if (!image?.filename || !userId) return;
+
+      try {
+        const { data } = await api.get(
+          `/users/${userId}/license-image/${encodeURIComponent(image.filename)}`,
+          { responseType: 'blob' }
+        );
+        objectUrl = URL.createObjectURL(data);
+        if (active) setSrc(objectUrl);
+      } catch (loadError) {
+        if (active) setError(getErrorMessage(loadError));
+      }
+    }
+
+    loadImage();
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [file, image?.filename, userId]);
+
+  if (error) return <p role="alert" className="text-xs text-red-700">{error}</p>;
+  if (!src) return null;
+  return <img src={src} alt="Driving licence preview" className="max-h-40 max-w-full rounded border border-line object-contain" />;
+}
 
 export default function UserForm({ user, fixedRole, roleLocked, onSubmit, onCancel }) {
   const creating = !user;
@@ -100,7 +151,15 @@ export default function UserForm({ user, fixedRole, roleLocked, onSubmit, onCanc
     setSaving(true);
     setServerErrors([]);
     try {
-      await onSubmit(toPayload(form, creating), form);
+      const payload = toPayload(form, creating);
+      if (form.licenseFile || form.removeLicenseImage) {
+        const multipart = new FormData();
+        multipart.append('payload', JSON.stringify(payload));
+        if (form.licenseFile) multipart.append('licenseImage', form.licenseFile);
+        await onSubmit(multipart, form);
+      } else {
+        await onSubmit(payload, form);
+      }
     } catch (err) {
       const fieldErrors = err.response?.data?.errors;
       setServerErrors(fieldErrors ? Object.values(fieldErrors) : [getErrorMessage(err)]);
@@ -175,6 +234,47 @@ export default function UserForm({ user, fixedRole, roleLocked, onSubmit, onCanc
                 <Field label="Licence expires on" required error={errors.licenseExpiry}>
                   <input type="date" value={form.licenseExpiry} onChange={set('licenseExpiry')} className={inputCls(errors.licenseExpiry)} />
                 </Field>
+                <div className="min-w-0">
+                  <Field label="Licence image" error={errors.licenseImage} hint="Optional. JPG, PNG, or WebP; up to 5 MB.">
+                    <input
+                      key={form.licenseFile?.name || 'empty'}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setForm((f) => ({ ...f, licenseFile: file, removeLicenseImage: false }));
+                        setErrors((current) => ({ ...current, licenseImage: undefined }));
+                      }}
+                      className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-canvas file:px-3 file:py-2 file:text-sm file:font-medium"
+                    />
+                  </Field>
+                  {(form.licenseFile || (form.licenseImage && !form.removeLicenseImage)) && (
+                    <div className="mt-2 flex flex-wrap items-start gap-3">
+                      <LicenseImagePreview image={form.licenseImage} file={form.licenseFile} userId={user?._id} />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (form.licenseFile) {
+                            setForm((f) => ({ ...f, licenseFile: null }));
+                          } else {
+                            setForm((f) => ({ ...f, removeLicenseImage: true }));
+                          }
+                        }}
+                        className="text-xs font-medium text-red-700 underline underline-offset-2"
+                      >
+                        Remove {form.licenseFile ? 'selected' : 'saved'} image
+                      </button>
+                    </div>
+                  )}
+                  {form.removeLicenseImage && (
+                    <p className="mt-2 text-xs text-slate-600">
+                      Saved licence image will be removed when you save.
+                      <button type="button" onClick={() => setForm((f) => ({ ...f, removeLicenseImage: false }))} className="ml-1 font-medium underline">
+                        Undo
+                      </button>
+                    </p>
+                  )}
+                </div>
                 <Field label="Badge number (PSV)">
                   <input value={form.badgeNumber} onChange={set('badgeNumber')} className={inputCls(false)} />
                 </Field>
