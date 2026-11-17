@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useReports } from '../context/ReportContext';
 import api from '../api/axios';
@@ -24,6 +25,13 @@ const DOC_SERIES = [
 ];
 
 const grid = 'grid gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3';
+const REQUEST_STATUS = {
+  pending: { tone: 'amber', label: 'Pending review' },
+  assigned: { tone: 'green', label: 'Assigned' },
+  rejected: { tone: 'red', label: 'Rejected' },
+  cancelled: { tone: 'slate', label: 'Cancelled' },
+  completed: { tone: 'slate', label: 'Completed' },
+};
 
 function Section({ title, description, children }) {
   return (
@@ -96,6 +104,192 @@ function RecentTripFeedback() {
         </p>
       )}
     </Section>
+  );
+}
+
+function TransportUserDashboard() {
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [refresh, setRefresh] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const load = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const [requestsResponse, completedResponse, feedbackResponse] = await Promise.all([
+          api.get('/vehicle-assignments', {
+            params: { type: 'request', limit: 5 },
+            signal: controller.signal,
+          }),
+          api.get('/vehicle-assignments', {
+            params: { type: 'request', status: 'completed', limit: 1 },
+            signal: controller.signal,
+          }),
+          api.get('/vehicle-assignments', {
+            params: { type: 'request', status: 'completed', feedbackOnly: true, limit: 5 },
+            signal: controller.signal,
+          }),
+        ]);
+        setDashboard({
+          requests: requestsResponse.data.data,
+          requestCount: requestsResponse.data.pagination.total,
+          feedback: feedbackResponse.data.data,
+          feedbackCount: feedbackResponse.data.pagination.total,
+          feedbackDueCount: Math.max(
+            completedResponse.data.pagination.total - feedbackResponse.data.pagination.total,
+            0
+          ),
+        });
+      } catch (loadError) {
+        if (loadError.name !== 'CanceledError') setError(getErrorMessage(loadError));
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+    load();
+    return () => controller.abort();
+  }, [refresh]);
+
+  return (
+    <>
+      <div className="mt-6 flex justify-end">
+        <button
+          type="button"
+          onClick={() => setRefresh((value) => value + 1)}
+          disabled={loading}
+          className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-3 py-1.5 text-sm font-medium hover:bg-canvas focus:outline-none focus-visible:ring-2 focus-visible:ring-signal disabled:opacity-60"
+        >
+          <Icon name="refresh" className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          {loading ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
+
+      {error && (
+        <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {error}
+        </p>
+      )}
+
+      <section className="mt-4 grid grid-cols-2 gap-3 @2xl:grid-cols-3" aria-label="Your transport activity">
+        <KpiCard
+          label="Vehicle requests"
+          value={dashboard?.requestCount ?? '-'}
+          hint="View status and assignments"
+          icon="bus"
+          to="/vehicle-requests"
+        />
+        <KpiCard
+          label="Feedback to leave"
+          value={dashboard?.feedbackDueCount ?? '-'}
+          hint="For completed trips"
+          icon="clock"
+          to="/vehicle-requests"
+        />
+        <KpiCard
+          label="Trip feedback submitted"
+          value={dashboard?.feedbackCount ?? '-'}
+          hint="For completed trips"
+          icon="check"
+          to="/vehicle-requests"
+        />
+      </section>
+
+      <div className="mt-8 grid gap-4 @2xl:grid-cols-2">
+        <section className="rounded-xl border border-line bg-white p-4 shadow-sm" aria-labelledby="my-requests-heading">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 id="my-requests-heading" className="font-display text-lg font-bold">My vehicle requests</h2>
+              <p className="text-sm text-slate-600">Your latest requests and their current status.</p>
+            </div>
+            <Link to="/vehicle-requests" className="shrink-0 text-sm font-semibold text-asphalt underline underline-offset-2">View all</Link>
+          </div>
+          {loading && !dashboard ? (
+            <p role="status" className="rounded-lg border border-line p-4 text-sm text-slate-600">Loading your requests...</p>
+          ) : dashboard?.requests.length ? (
+            <div className="space-y-3">
+              {dashboard.requests.map((request) => {
+                const status = REQUEST_STATUS[request.status] || REQUEST_STATUS.pending;
+                return (
+                  <article key={request._id} className="rounded-lg border border-line p-3">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-asphalt">{request.purpose}</h3>
+                        <p className="mt-1 text-sm text-slate-600">{request.pickupLocation} → {request.destination}</p>
+                      </div>
+                      <Badge tone={status.tone}>{status.label}</Badge>
+                    </div>
+                    <p className="mt-3 text-xs text-slate-500">
+                      {formatDateTime(request.startAt)}
+                      {['assigned', 'completed'].includes(request.status) && ` · ${request.vehicle?.regNo || 'Vehicle assigned'} · ${request.driver?.name || 'Driver assigned'}`}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
+          ) : error && !dashboard ? (
+            <p className="rounded-lg border border-line p-4 text-sm text-slate-600">Your requests could not be loaded.</p>
+          ) : (
+            <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-600">
+              <p>You have not submitted a vehicle request yet.</p>
+              <Link to="/vehicle-requests" className="mt-3 inline-block font-semibold text-asphalt underline underline-offset-2">Create a request</Link>
+            </div>
+          )}
+          {dashboard?.requestCount > 5 && (
+            <Link to="/vehicle-requests" className="mt-3 inline-block text-sm font-semibold text-asphalt underline underline-offset-2">
+              View all {dashboard.requestCount} requests
+            </Link>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-line bg-white p-4 shadow-sm" aria-labelledby="my-feedback-heading">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 id="my-feedback-heading" className="font-display text-lg font-bold">My trip feedback</h2>
+              <p className="text-sm text-slate-600">Your latest feedback for completed trips.</p>
+            </div>
+            <Link to="/vehicle-requests" className="shrink-0 text-sm font-semibold text-asphalt underline underline-offset-2">View all</Link>
+          </div>
+          {loading && !dashboard ? (
+            <p role="status" className="rounded-lg border border-line p-4 text-sm text-slate-600">Loading your feedback...</p>
+          ) : dashboard?.feedback.length ? (
+            <div className="space-y-3">
+              {dashboard.feedback.map((item) => (
+                <article key={item._id} className="rounded-lg border border-line p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="truncate font-semibold text-asphalt">{item.destination}</h3>
+                      <p className="mt-1 text-sm text-slate-600">{item.purpose}</p>
+                    </div>
+                    <Badge tone={item.feedback.experience === 'good' ? 'green' : 'red'}>
+                      {item.feedback.experience === 'good' ? 'Good' : 'Bad'}
+                    </Badge>
+                  </div>
+                  {item.feedback.remarks && <p className="mt-3 rounded-lg bg-canvas p-3 text-sm text-slate-700">{item.feedback.remarks}</p>}
+                  <p className="mt-3 border-t border-line pt-3 text-xs text-slate-500">
+                    Submitted {formatDateTime(item.feedback.submittedAt)}
+                  </p>
+                </article>
+              ))}
+            </div>
+          ) : error && !dashboard ? (
+            <p className="rounded-lg border border-line p-4 text-sm text-slate-600">Your feedback could not be loaded.</p>
+          ) : (
+            <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-600">
+              <p>You have not submitted trip feedback yet.</p>
+              <p className="mt-1">After a trip is completed, you can leave feedback from your vehicle requests.</p>
+            </div>
+          )}
+          {dashboard?.feedbackCount > 5 && (
+            <Link to="/vehicle-requests" className="mt-3 inline-block text-sm font-semibold text-asphalt underline underline-offset-2">
+              View all {dashboard.feedbackCount} feedback entries
+            </Link>
+          )}
+        </section>
+      </div>
+    </>
   );
 }
 
@@ -277,7 +471,9 @@ export default function Dashboard() {
                     ? `${alerts} ${alerts === 1 ? 'item needs' : 'items need'} attention in the next 30 days.`
                     : 'Everything is in order for the next 30 days.'
                   : 'Loading the latest figures...'
-                : `Signed in as ${ROLE_LABELS[user.role].toLowerCase()}.`}
+                : user.role === ROLES.TRANSPORT_USER
+                  ? 'Review your vehicle requests and trip feedback.'
+                  : `Signed in as ${ROLE_LABELS[user.role].toLowerCase()}.`}
             </p>
           </div>
           {isManager && (
@@ -299,6 +495,8 @@ export default function Dashboard() {
 
       {isManager ? (
         <ManagerDashboard />
+      ) : user.role === ROLES.TRANSPORT_USER ? (
+        <TransportUserDashboard />
       ) : (
         <p className="mt-8 max-w-xl rounded-lg border border-line bg-white p-5 text-slate-700">
           Transport registration, bus tracking and fee payment will appear here as they are released.
